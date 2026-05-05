@@ -1,0 +1,16 @@
+# Mirror config for ffmpeg (Windows essentials build from GyanD/ffmpeg)
+tool: ffmpeg
+upstream:
+  type: github_release
+  owner: GyanD
+  repo: ffmpeg
+  # Asset pattern to download from upstream
+  assets:
+    - pattern: "ffmpeg-{version}-essentials_build.zip"
+      platforms: [windows]
+# Mirror release tag: ffmpeg-{version}
+tag_prefix: "ffmpeg-"
+# How many latest versions to mirror
+keep_versions: 5
+license: LGPL-2.1
+source_url: https://ffmpeg.org/download.html

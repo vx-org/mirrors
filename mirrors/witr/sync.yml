@@ -1,0 +1,21 @@
+# Mirror config for witr (all platforms)
+tool: witr
+upstream:
+  type: github_release
+  owner: pranshuparmar
+  repo: witr
+  assets:
+    - pattern: "witr-linux-amd64"
+      platforms: [linux/amd64]
+    - pattern: "witr-linux-arm64"
+      platforms: [linux/arm64]
+    - pattern: "witr-darwin-amd64"
+      platforms: [macos/amd64]
+    - pattern: "witr-darwin-arm64"
+      platforms: [macos/arm64]
+    - pattern: "witr-windows-amd64.zip"
+      platforms: [windows/amd64]
+tag_prefix: "witr-"
+keep_versions: 5
+license: MIT
+source_url: https://github.com/pranshuparmar/witr

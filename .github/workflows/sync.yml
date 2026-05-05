@@ -1,0 +1,57 @@
+name: Sync Mirrors
+
+on:
+  schedule:
+    # Run nightly at 02:00 UTC
+    - cron: "0 2 * * *"
+  workflow_dispatch:
+    inputs:
+      tool:
+        description: "Tool to sync (leave empty for all)"
+        required: false
+        default: ""
+
+permissions:
+  contents: write
+
+jobs:
+  discover:
+    name: Discover tools to sync
+    runs-on: ubuntu-latest
+    outputs:
+      matrix: ${{ steps.set.outputs.matrix }}
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Build matrix
+        id: set
+        env:
+          TOOL_FILTER: ${{ github.event.inputs.tool }}
+        run: |
+          configs=$(find mirrors -name "sync.yml" | sort)
+          tools=()
+          for f in $configs; do
+            tool=$(grep "^tool:" "$f" | sed 's/tool: *//')
+            if [[ -z "$TOOL_FILTER" || "$tool" == "$TOOL_FILTER" ]]; then
+              tools+=("{\"config\":\"$f\",\"tool\":\"$tool\"}")
+            fi
+          done
+          matrix=$(printf '%s\n' "${tools[@]}" | jq -s '{"include": .}')
+          echo "matrix=$matrix" >> "$GITHUB_OUTPUT"
+
+  sync:
+    name: Sync ${{ matrix.tool }}
+    needs: discover
+    runs-on: ubuntu-latest
+    strategy:
+      fail-fast: false
+      matrix: ${{ fromJson(needs.discover.outputs.matrix) }}
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Sync ${{ matrix.tool }}
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          chmod +x scripts/sync-tool.sh
+          ./scripts/sync-tool.sh "${{ matrix.config }}"
