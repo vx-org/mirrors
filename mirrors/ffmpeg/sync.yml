@@ -1,40 +1,36 @@
 # Mirror config for ffmpeg
 #
-# Upstream: BtbN/FFmpeg-Builds (official cross-platform static builds)
-# Source:   https://ffmpeg.org/download.html → "Linux Static Builds" / "Windows Builds"
+# Official source: https://ffmpeg.org/download.html
+# Upstream builds: BtbN/FFmpeg-Builds (all assets live in the "latest" release)
 #
-# Asset naming convention from BtbN:
-#   Windows x64:    ffmpeg-n{version}-latest-win64-lgpl-{version}.zip
-#   Linux x64:      ffmpeg-n{version}-latest-linux64-lgpl-{version}.tar.xz
-#   Linux arm64:    ffmpeg-n{version}-latest-linuxarm64-lgpl-{version}.tar.xz
+# BtbN asset format (versioned builds):
+#   ffmpeg-n{version}-latest-{platform}-lgpl-{version}.{ext}
 #
-# Mirror tag format: ffmpeg-{version}  (e.g. ffmpeg-8.1.1)
+# We mirror each versioned variant independently with tag: ffmpeg-{version}
+# This ensures permanent per-version archiving.
+#
+# Platforms mirrored:
+#   win64           ffmpeg-n{v}-latest-win64-lgpl-{v}.zip
+#   linux64         ffmpeg-n{v}-latest-linux64-lgpl-{v}.tar.xz
+#   linuxarm64      ffmpeg-n{v}-latest-linuxarm64-lgpl-{v}.tar.xz
 
 tool: ffmpeg
 upstream:
-  type: github_release
+  # Special mode: extract multiple versions from a single "latest" release
+  type: btbn_ffmpeg
   owner: BtbN
   repo: FFmpeg-Builds
-  # Only sync stable versioned releases (tag pattern: n7.x, n8.x etc.)
-  # Exclude "latest" rolling releases
-  tag_filter: "^autobuild-"
-  include_prerelease: true
-  assets:
-    # Windows x64 (lgpl static)
-    - pattern: "ffmpeg-n{semver}-latest-win64-lgpl-{semver}.zip"
+  release_tag: "latest"
+  # Asset regex patterns (one per platform); {v} = captured version group
+  asset_patterns:
+    - regex: "ffmpeg-n(?P<version>[0-9.]+)-latest-win64-lgpl-[0-9.]+\\.zip"
       rename: "ffmpeg-{version}-win64-lgpl.zip"
-      platforms: [windows/x64]
-    # Linux x64 (lgpl static)
-    - pattern: "ffmpeg-n{semver}-latest-linux64-lgpl-{semver}.tar.xz"
+    - regex: "ffmpeg-n(?P<version>[0-9.]+)-latest-linux64-lgpl-[0-9.]+\\.tar\\.xz"
       rename: "ffmpeg-{version}-linux64-lgpl.tar.xz"
-      platforms: [linux/x64]
-    # Linux arm64 (lgpl static)
-    - pattern: "ffmpeg-n{semver}-latest-linuxarm64-lgpl-{semver}.tar.xz"
+    - regex: "ffmpeg-n(?P<version>[0-9.]+)-latest-linuxarm64-lgpl-[0-9.]+\\.tar\\.xz"
       rename: "ffmpeg-{version}-linuxarm64-lgpl.tar.xz"
-      platforms: [linux/arm64]
 
 tag_prefix: "ffmpeg-"
-# Archive ALL versions permanently (never delete old releases)
 keep_versions: 0
 license: LGPL-2.1
 source_url: https://ffmpeg.org/download.html
