@@ -1,60 +1,93 @@
 name: Sync Mirrors
 
+# Permanently archives ALL versions of each tool's releases.
+# New releases are detected nightly; existing mirror releases are never deleted.
+
 on:
   schedule:
-    # Run nightly at 02:00 UTC
+    # Nightly at 02:00 UTC
     - cron: "0 2 * * *"
   workflow_dispatch:
     inputs:
       tool:
-        description: "Tool to sync (leave empty for all)"
+        description: "Tool name to sync (leave empty for all)"
         required: false
         default: ""
+      force:
+        description: "Force re-sync even if release already exists"
+        required: false
+        default: "false"
+        type: choice
+        options: ["false", "true"]
+      dry_run:
+        description: "Dry run (no releases created)"
+        required: false
+        default: "false"
+        type: choice
+        options: ["false", "true"]
 
 permissions:
   contents: write
 
 jobs:
+  # -------------------------------------------------------------------------
+  # Discover which tools to sync and build the job matrix
+  # -------------------------------------------------------------------------
   discover:
-    name: Discover tools to sync
+    name: Discover tools
     runs-on: ubuntu-latest
     outputs:
-      matrix: ${{ steps.set.outputs.matrix }}
+      matrix: ${{ steps.build.outputs.matrix }}
     steps:
       - uses: actions/checkout@v4.2.2
 
-      - name: Build matrix
-        id: set
+      - name: Build sync matrix
+        id: build
         env:
           TOOL_FILTER: ${{ github.event.inputs.tool }}
         run: |
-          configs=$(find mirrors -name "sync.yml" | sort)
-          tools=()
-          for f in $configs; do
-            tool=$(grep "^tool:" "$f" | sed 's/tool: *//')
+          items=()
+          while IFS= read -r cfg; do
+            tool=$(grep "^tool:" "$cfg" | sed 's/tool:[[:space:]]*//')
             if [[ -z "$TOOL_FILTER" || "$tool" == "$TOOL_FILTER" ]]; then
-              tools+=("{\"config\":\"$f\",\"tool\":\"$tool\"}")
+              items+=("{\"config\":\"$cfg\",\"tool\":\"$tool\"}")
             fi
-          done
-          # Use EOF delimiter to safely write multi-line JSON to GITHUB_OUTPUT
-          matrix=$(printf '%s\n' "${tools[@]}" | jq -sc '{"include": .}')
-          echo "matrix<<EOF" >> "$GITHUB_OUTPUT"
-          echo "$matrix" >> "$GITHUB_OUTPUT"
-          echo "EOF" >> "$GITHUB_OUTPUT"
+          done < <(find mirrors -name "sync.yml" | sort)
 
+          if [[ ${#items[@]} -eq 0 ]]; then
+            echo "No tools found to sync." >&2
+            echo 'matrix={"include":[]}' >> "$GITHUB_OUTPUT"
+            exit 0
+          fi
+
+          # Use EOF delimiter to safely write multi-line JSON
+          json=$(printf '%s\n' "${items[@]}" | jq -sc '{"include": .}')
+          echo "matrix<<EOF" >> "$GITHUB_OUTPUT"
+          echo "$json"       >> "$GITHUB_OUTPUT"
+          echo "EOF"         >> "$GITHUB_OUTPUT"
+
+          echo "Matrix: $json"
+
+  # -------------------------------------------------------------------------
+  # Sync each tool in parallel
+  # -------------------------------------------------------------------------
   sync:
-    name: Sync ${{ matrix.tool }}
+    name: "Sync ${{ matrix.tool }}"
     needs: discover
+    if: ${{ needs.discover.outputs.matrix != '{"include":[]}' }}
     runs-on: ubuntu-latest
     strategy:
       fail-fast: false
       matrix: ${{ fromJson(needs.discover.outputs.matrix) }}
+
     steps:
       - uses: actions/checkout@v4.2.2
 
-      - name: Sync ${{ matrix.tool }}
+      - name: "Sync ${{ matrix.tool }}"
         env:
           GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          FORCE:    ${{ github.event.inputs.force == 'true' && '1' || '0' }}
+          DRY_RUN:  ${{ github.event.inputs.dry_run == 'true' && '1' || '0' }}
         run: |
           chmod +x scripts/sync-tool.sh
           ./scripts/sync-tool.sh "${{ matrix.config }}"

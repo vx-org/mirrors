@@ -1,16 +1,41 @@
-# Mirror config for ffmpeg (Windows essentials build from GyanD/ffmpeg)
+# Mirror config for ffmpeg
+#
+# Upstream: BtbN/FFmpeg-Builds (official cross-platform static builds)
+# Source:   https://ffmpeg.org/download.html → "Linux Static Builds" / "Windows Builds"
+#
+# Asset naming convention from BtbN:
+#   Windows x64:    ffmpeg-n{version}-latest-win64-lgpl-{version}.zip
+#   Linux x64:      ffmpeg-n{version}-latest-linux64-lgpl-{version}.tar.xz
+#   Linux arm64:    ffmpeg-n{version}-latest-linuxarm64-lgpl-{version}.tar.xz
+#
+# Mirror tag format: ffmpeg-{version}  (e.g. ffmpeg-8.1.1)
+
 tool: ffmpeg
 upstream:
   type: github_release
-  owner: GyanD
-  repo: ffmpeg
-  # Asset pattern to download from upstream
+  owner: BtbN
+  repo: FFmpeg-Builds
+  # Only sync stable versioned releases (tag pattern: n7.x, n8.x etc.)
+  # Exclude "latest" rolling releases
+  tag_filter: "^autobuild-"
+  include_prerelease: true
   assets:
-    - pattern: "ffmpeg-{version}-essentials_build.zip"
-      platforms: [windows]
-# Mirror release tag: ffmpeg-{version}
+    # Windows x64 (lgpl static)
+    - pattern: "ffmpeg-n{semver}-latest-win64-lgpl-{semver}.zip"
+      rename: "ffmpeg-{version}-win64-lgpl.zip"
+      platforms: [windows/x64]
+    # Linux x64 (lgpl static)
+    - pattern: "ffmpeg-n{semver}-latest-linux64-lgpl-{semver}.tar.xz"
+      rename: "ffmpeg-{version}-linux64-lgpl.tar.xz"
+      platforms: [linux/x64]
+    # Linux arm64 (lgpl static)
+    - pattern: "ffmpeg-n{semver}-latest-linuxarm64-lgpl-{semver}.tar.xz"
+      rename: "ffmpeg-{version}-linuxarm64-lgpl.tar.xz"
+      platforms: [linux/arm64]
+
 tag_prefix: "ffmpeg-"
-# How many latest versions to mirror
-keep_versions: 5
+# Archive ALL versions permanently (never delete old releases)
+keep_versions: 0
 license: LGPL-2.1
 source_url: https://ffmpeg.org/download.html
+upstream_license_url: https://github.com/BtbN/FFmpeg-Builds/blob/master/LICENSE
