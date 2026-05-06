@@ -69,7 +69,7 @@ jobs:
           echo "Matrix: $json"
 
   # -------------------------------------------------------------------------
-  # Sync each tool in parallel
+  # Sync each tool — max 8 parallel to stay under GitHub API rate limits
   # -------------------------------------------------------------------------
   sync:
     name: "Sync ${{ matrix.tool }}"
@@ -78,6 +78,7 @@ jobs:
     runs-on: ubuntu-latest
     strategy:
       fail-fast: false
+      max-parallel: 8          # 129 tools ÷ 8 = ~16 waves, avoids rate limit
       matrix: ${{ fromJson(needs.discover.outputs.matrix) }}
 
     steps:

@@ -96,16 +96,25 @@ except ImportError:
 
 
 def gh(args: list[str], capture: bool = True) -> str:
-    """Run a gh CLI command."""
+    """Run a gh CLI command. Auto-retries on rate limit (HTTP 403/429)."""
+    import time
     cmd = ["gh"] + args
-    if capture:
-        r = subprocess.run(cmd, capture_output=True, text=True)
-        if r.returncode != 0:
+    for attempt in range(5):
+        if capture:
+            r = subprocess.run(cmd, capture_output=True, text=True)
+            if r.returncode == 0:
+                return r.stdout.strip()
+            # Rate limit: back off and retry
+            if "rate limit" in r.stderr.lower() or "429" in r.stderr or "403" in r.stderr:
+                wait = 30 * (2 ** attempt)  # 30s, 60s, 120s, 240s, 480s
+                print(f"    [rate-limit] Waiting {wait}s before retry {attempt+1}/5 ...")
+                time.sleep(wait)
+                continue
             raise RuntimeError(f"gh {' '.join(args)} failed:\n{r.stderr}")
-        return r.stdout.strip()
-    else:
-        subprocess.run(cmd, check=True)
-        return ""
+        else:
+            subprocess.run(cmd, check=True)
+            return ""
+    raise RuntimeError(f"gh {' '.join(args)} failed after 5 retries (rate limit)")
 
 
 def gh_json(args: list[str]) -> object:
