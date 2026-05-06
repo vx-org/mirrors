@@ -1,24 +1,17 @@
-# Note: zig release assets use separate naming scheme
-# ziglang/zig releases bootstrap source, actual binaries from ziglang.org/download
+# Zig binaries are published in https://ziglang.org/download/index.json.
+# File naming changed in 0.14.1 from zig-{os}-{arch}-{version}
+# to zig-{arch}-{os}-{version}; use tarball URLs from the index directly.
 tool: zig
 upstream:
-  type: github_release
-  owner: ziglang
-  repo: zig
-  tag_prefix: ""
-  include_prerelease: false
-  assets:
-    - pattern: "zig-windows-x86_64-{version}.zip"
-      platforms: [windows/x64]
-    - pattern: "zig-linux-x86_64-{version}.tar.xz"
-      platforms: [linux/x64]
-    - pattern: "zig-linux-aarch64-{version}.tar.xz"
-      platforms: [linux/arm64]
-    - pattern: "zig-macos-x86_64-{version}.tar.xz"
-      platforms: [macos/x64]
-    - pattern: "zig-macos-aarch64-{version}.tar.xz"
-      platforms: [macos/arm64]
+  type: zig_download_index
+  index_url: https://ziglang.org/download/index.json
+  platforms:
+    - x86_64-windows
+    - x86_64-linux
+    - aarch64-linux
+    - x86_64-macos
+    - aarch64-macos
 tag_prefix: "zig-"
 keep_versions: 0
 license: MIT
-source_url: https://github.com/ziglang/zig
+source_url: https://ziglang.org/download

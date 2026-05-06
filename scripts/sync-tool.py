@@ -205,6 +205,19 @@ def download_file(url: str, dest: Path) -> bool:
     return False
 
 
+def url_exists(url: str) -> bool:
+    """Return whether a URL can be fetched without downloading the whole file."""
+    r = subprocess.run(
+        ["curl", "-fsIL", "--max-time", "15", url],
+        capture_output=True, text=True
+    )
+    return r.returncode == 0 and "200" in r.stdout
+
+
+def _format_asset_template(template: str, version: str) -> str:
+    return template.replace("{version}", version)
+
+
 def asset_matches(name: str, pattern: str, version: str) -> bool:
     """Check if an asset name matches the pattern with {semver}/{version} replaced."""
     regex = pattern
@@ -331,6 +344,82 @@ def sync_multi_version(cfg: dict, mirror_repo: str, dry_run: bool, force: bool) 
     print("=" * 64)
     return 1 if failed > 0 else 0
 
+
+
+def sync_python_legacy(cfg: dict, mirror_repo: str, dry_run: bool, force: bool) -> int:
+    """Mirror legacy CPython installers from python.org-compatible mirrors."""
+    legacy_releases = cfg["upstream"].get("legacy_releases", [])
+    if not legacy_releases:
+        return 0
+
+    tool = cfg["tool"]
+    mirror_prefix = cfg["tag_prefix"]
+    synced = skipped = failed = 0
+
+    print()
+    print("=" * 64)
+    print(f"  Tool    : {tool}  (python_legacy mode)")
+    print(f"  Mirror  : {mirror_repo}")
+    print(f"  Dry run : {dry_run}  Force: {force}")
+    print("=" * 64)
+
+    for release in legacy_releases:
+        version = release["version"]
+        mirror_tag = f"{mirror_prefix}{version}"
+        assets = release.get("assets", [])
+        print(f"\n--- {tool} legacy {version}  (→ {mirror_tag}) ---")
+
+        if not force and release_exists(mirror_repo, mirror_tag):
+            print("    [SKIP] Already mirrored.")
+            skipped += 1
+            continue
+
+        tmp = Path(tempfile.mkdtemp())
+        try:
+            uploaded: list[Path] = []
+            for asset_def in assets:
+                dest_name = _format_asset_template(asset_def["name"], version)
+                dest = tmp / dest_name
+                urls = [_format_asset_template(url, version) for url in asset_def.get("urls", [])]
+                source_url = next((url for url in urls if url_exists(url)), None)
+                if source_url is None:
+                    print(f"    [WARN] No mirror URL found for {dest_name}")
+                    continue
+
+                print(f"    DL  {source_url}  → {dest_name}")
+                if dry_run:
+                    dest.touch()
+                elif not download_file(source_url, dest):
+                    print(f"    [WARN] Download failed: {source_url}")
+                    continue
+                uploaded.append(dest)
+
+            if not uploaded:
+                print(f"    [WARN] No assets — skipping {mirror_tag}.")
+                skipped += 1
+                continue
+
+            notes = (
+                f"## Python {version}\n\n"
+                f"**Source:** https://www.python.org/ftp/python/{version}/\n\n"
+                f"Legacy CPython assets mirrored from python.org-compatible mirrors.\n\n"
+                f"---\n*Permanent archive by "
+                f"[vx-org/mirrors](https://github.com/vx-org/mirrors)*"
+            )
+            result = _create_mirror_release(tool, version, mirror_tag,
+                                            mirror_repo, uploaded, notes, dry_run)
+            if result in ("ok", "dry"):
+                synced += 1
+            else:
+                failed += 1
+        finally:
+            shutil.rmtree(tmp, ignore_errors=True)
+
+    print()
+    print("=" * 64)
+    print(f"  {tool} legacy done — synced={synced}  skipped={skipped}  failed={failed}")
+    print("=" * 64)
+    return 1 if failed > 0 else 0
 
 
 def sync_python_standalone(cfg: dict, mirror_repo: str, dry_run: bool, force: bool) -> int:
@@ -480,7 +569,8 @@ def sync_python_standalone(cfg: dict, mirror_repo: str, dry_run: bool, force: bo
     print("=" * 64)
     print(f"  {tool} done — synced={synced}  skipped={skipped}  failed={failed}")
     print("=" * 64)
-    return 1 if failed > 0 else 0
+    legacy_status = sync_python_legacy(cfg, mirror_repo, dry_run, force)
+    return 1 if failed > 0 or legacy_status != 0 else 0
 
 
 def sync_github_release_direct(cfg: dict, mirror_repo: str, dry_run: bool, force: bool) -> int:
@@ -1151,6 +1241,93 @@ def sync_adoptium(cfg: dict, mirror_repo: str, dry_run: bool, force: bool) -> in
     return 1 if failed > 0 else 0
 
 
+def sync_zig_download_index(cfg: dict, mirror_repo: str, dry_run: bool, force: bool) -> int:
+    """Handler for Zig official download index."""
+    tool = cfg["tool"]
+    upstream = cfg["upstream"]
+    mirror_prefix = cfg["tag_prefix"]
+    keep_versions = cfg.get("keep_versions", 0)
+    index_url = upstream.get("index_url", "https://ziglang.org/download/index.json")
+    platform_keys = upstream.get("platforms", [])
+
+    print("=" * 64)
+    print(f"  Tool    : {tool}  (zig_download_index mode)")
+    print(f"  Index   : {index_url}")
+    print(f"  Mirror  : {mirror_repo}")
+    print(f"  Dry run : {dry_run}  Force: {force}")
+    print("=" * 64)
+
+    index = fetch_url_json(index_url)
+    assert isinstance(index, dict)
+
+    versions = [v for v in index.keys() if v != "master"]
+    if keep_versions > 0:
+        versions = versions[:keep_versions]
+    print(f"  Found {len(versions)} versions on ziglang.org")
+
+    synced = skipped = failed = 0
+
+    for version in versions:
+        release = index.get(version, {})
+        if not isinstance(release, dict):
+            continue
+        mirror_tag = f"{mirror_prefix}{version}"
+        print(f"\n--- {tool} {version}  (→ {mirror_tag}) ---")
+
+        if not force and release_exists(mirror_repo, mirror_tag):
+            print("    [SKIP] Already mirrored.")
+            skipped += 1
+            continue
+
+        tmp = Path(tempfile.mkdtemp())
+        try:
+            uploaded: list[Path] = []
+            for platform_key in platform_keys:
+                asset_info = release.get(platform_key, {})
+                if not isinstance(asset_info, dict):
+                    continue
+                url = asset_info.get("tarball")
+                if not url:
+                    continue
+                filename = url.rsplit("/", 1)[-1]
+                dest = tmp / filename
+                print(f"    DL  {url}")
+                if dry_run:
+                    dest.touch()
+                elif not download_file(url, dest):
+                    print(f"    [WARN] Download failed: {filename}")
+                    continue
+                uploaded.append(dest)
+
+            if not uploaded:
+                print(f"    [WARN] No assets — skipping {mirror_tag}.")
+                skipped += 1
+                continue
+
+            notes = (
+                f"## Zig {version}\n\n"
+                f"**Source:** https://ziglang.org/download/{version}/\n\n"
+                f"Assets are mirrored from Zig's official download index, preserving "
+                f"the upstream filenames for both legacy and current naming schemes.\n\n"
+                f"---\n*Permanent archive by "
+                f"[vx-org/mirrors](https://github.com/vx-org/mirrors)*"
+            )
+            result = _create_mirror_release(tool, version, mirror_tag,
+                                            mirror_repo, uploaded, notes, dry_run)
+            if result in ("ok", "dry"):
+                synced += 1
+            else:
+                failed += 1
+        finally:
+            shutil.rmtree(tmp, ignore_errors=True)
+
+    print()
+    print("=" * 64)
+    print(f"  {tool} done — synced={synced}  skipped={skipped}  failed={failed}")
+    print("=" * 64)
+    return 1 if failed > 0 else 0
+
+
 def sync_dotnet_microsoft(cfg: dict, mirror_repo: str, dry_run: bool, force: bool) -> int:
     """Handler for .NET SDK from Microsoft CDN."""
     tool          = cfg["tool"]
@@ -1282,6 +1459,8 @@ def main() -> int:
         return sync_hashicorp(cfg, MIRROR_REPO, DRY_RUN, FORCE)
     if up_type == "adoptium":
         return sync_adoptium(cfg, MIRROR_REPO, DRY_RUN, FORCE)
+    if up_type == "zig_download_index":
+        return sync_zig_download_index(cfg, MIRROR_REPO, DRY_RUN, FORCE)
     if up_type == "dotnet_microsoft":
         return sync_dotnet_microsoft(cfg, MIRROR_REPO, DRY_RUN, FORCE)
 
