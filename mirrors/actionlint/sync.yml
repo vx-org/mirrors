@@ -1,0 +1,22 @@
+tool: actionlint
+upstream:
+  type: github_release
+  owner: rhysd
+  repo: actionlint
+  tag_prefix: "v"
+  include_prerelease: false
+  assets:
+    - pattern: "actionlint_{version}_windows_amd64.zip"
+      platforms: [windows/x64]
+    - pattern: "actionlint_{version}_linux_amd64.tar.gz"
+      platforms: [linux/x64]
+    - pattern: "actionlint_{version}_linux_arm64.tar.gz"
+      platforms: [linux/arm64]
+    - pattern: "actionlint_{version}_darwin_amd64.tar.gz"
+      platforms: [macos/x64]
+    - pattern: "actionlint_{version}_darwin_arm64.tar.gz"
+      platforms: [macos/arm64]
+tag_prefix: "actionlint-"
+keep_versions: 0
+license: MIT
+source_url: https://github.com/rhysd/actionlint

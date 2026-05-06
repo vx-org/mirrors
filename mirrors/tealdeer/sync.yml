@@ -1,0 +1,22 @@
+tool: tealdeer
+upstream:
+  type: github_release
+  owner: dbrgn
+  repo: tealdeer
+  tag_prefix: "v"
+  include_prerelease: false
+  assets:
+    - pattern: "tealdeer-windows-x86_64-msvc.exe"
+      platforms: [windows/x64]
+    - pattern: "tealdeer-linux-x86_64-musl"
+      platforms: [linux/x64]
+    - pattern: "tealdeer-linux-aarch64-musl"
+      platforms: [linux/arm64]
+    - pattern: "tealdeer-macos-x86_64"
+      platforms: [macos/x64]
+    - pattern: "tealdeer-macos-aarch64"
+      platforms: [macos/arm64]
+tag_prefix: "tealdeer-"
+keep_versions: 0
+license: MIT
+source_url: https://github.com/dbrgn/tealdeer

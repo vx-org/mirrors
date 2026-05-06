@@ -1,0 +1,22 @@
+tool: worktrunk
+upstream:
+  type: github_release
+  owner: nicowillis
+  repo: worktrunk
+  tag_prefix: "v"
+  include_prerelease: false
+  assets:
+    - pattern: "worktrunk-windows-amd64.zip"
+      platforms: [windows/x64]
+    - pattern: "worktrunk-linux-amd64.tar.gz"
+      platforms: [linux/x64]
+    - pattern: "worktrunk-linux-arm64.tar.gz"
+      platforms: [linux/arm64]
+    - pattern: "worktrunk-darwin-amd64.tar.gz"
+      platforms: [macos/x64]
+    - pattern: "worktrunk-darwin-arm64.tar.gz"
+      platforms: [macos/arm64]
+tag_prefix: "worktrunk-"
+keep_versions: 0
+license: MIT
+source_url: https://github.com/nicowillis/worktrunk

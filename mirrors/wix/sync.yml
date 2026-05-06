@@ -1,0 +1,14 @@
+tool: wix
+upstream:
+  type: github_release
+  owner: wixtoolset
+  repo: wix
+  tag_prefix: "v"
+  include_prerelease: false
+  assets:
+    - pattern: "wix-cli-x64.msi"
+      platforms: [windows/x64]
+tag_prefix: "wix-"
+keep_versions: 0
+license: MS-RL
+source_url: https://github.com/wixtoolset/wix

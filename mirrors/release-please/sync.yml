@@ -1,0 +1,19 @@
+# TODO: googleapis/release-please has no binary release assets (Node.js package)
+tool: release-please
+upstream:
+  type: github_release
+  owner: googleapis
+  repo: release-please
+  tag_prefix: "v"
+  include_prerelease: false
+  assets:
+    - pattern: "release-please-{version}-windows-amd64.zip"
+      platforms: [windows/x64]
+    - pattern: "release-please-{version}-linux-amd64.tar.gz"
+      platforms: [linux/x64]
+    - pattern: "release-please-{version}-darwin-amd64.tar.gz"
+      platforms: [macos/x64, macos/arm64]
+tag_prefix: "release-please-"
+keep_versions: 0
+license: Apache-2.0
+source_url: https://github.com/googleapis/release-please

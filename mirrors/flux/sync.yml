@@ -1,0 +1,22 @@
+tool: flux
+upstream:
+  type: github_release
+  owner: fluxcd
+  repo: flux2
+  tag_prefix: "v"
+  include_prerelease: false
+  assets:
+    - pattern: "flux_{version}_windows_amd64.zip"
+      platforms: [windows/x64]
+    - pattern: "flux_{version}_linux_amd64.tar.gz"
+      platforms: [linux/x64]
+    - pattern: "flux_{version}_linux_arm64.tar.gz"
+      platforms: [linux/arm64]
+    - pattern: "flux_{version}_darwin_amd64.tar.gz"
+      platforms: [macos/x64]
+    - pattern: "flux_{version}_darwin_arm64.tar.gz"
+      platforms: [macos/arm64]
+tag_prefix: "flux-"
+keep_versions: 0
+license: Apache-2.0
+source_url: https://github.com/fluxcd/flux2

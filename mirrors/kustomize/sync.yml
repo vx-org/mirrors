@@ -1,0 +1,22 @@
+tool: kustomize
+upstream:
+  type: github_release
+  owner: kubernetes-sigs
+  repo: kustomize
+  tag_prefix: "kustomize/v"
+  include_prerelease: false
+  assets:
+    - pattern: "kustomize_v{version}_windows_amd64.zip"
+      platforms: [windows/x64]
+    - pattern: "kustomize_v{version}_linux_amd64.tar.gz"
+      platforms: [linux/x64]
+    - pattern: "kustomize_v{version}_linux_arm64.tar.gz"
+      platforms: [linux/arm64]
+    - pattern: "kustomize_v{version}_darwin_amd64.tar.gz"
+      platforms: [macos/x64]
+    - pattern: "kustomize_v{version}_darwin_arm64.tar.gz"
+      platforms: [macos/arm64]
+tag_prefix: "kustomize-"
+keep_versions: 0
+license: Apache-2.0
+source_url: https://github.com/kubernetes-sigs/kustomize

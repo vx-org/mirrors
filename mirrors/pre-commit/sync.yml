@@ -1,0 +1,14 @@
+tool: pre-commit
+upstream:
+  type: github_release
+  owner: pre-commit
+  repo: pre-commit
+  tag_prefix: "v"
+  include_prerelease: false
+  assets:
+    - pattern: "pre-commit-{version}.pyz"
+      platforms: [windows/x64, linux/x64, linux/arm64, macos/x64, macos/arm64]
+tag_prefix: "pre-commit-"
+keep_versions: 0
+license: MIT
+source_url: https://github.com/pre-commit/pre-commit

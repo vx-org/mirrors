@@ -1,0 +1,22 @@
+tool: hadolint
+upstream:
+  type: github_release
+  owner: hadolint
+  repo: hadolint
+  tag_prefix: "v"
+  include_prerelease: false
+  assets:
+    - pattern: "hadolint-Windows-x86_64.exe"
+      platforms: [windows/x64]
+    - pattern: "hadolint-Linux-x86_64"
+      platforms: [linux/x64]
+    - pattern: "hadolint-Linux-arm64"
+      platforms: [linux/arm64]
+    - pattern: "hadolint-Darwin-x86_64"
+      platforms: [macos/x64]
+    - pattern: "hadolint-Darwin-arm64"
+      platforms: [macos/arm64]
+tag_prefix: "hadolint-"
+keep_versions: 0
+license: GPL-3.0
+source_url: https://github.com/hadolint/hadolint

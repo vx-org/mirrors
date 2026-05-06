@@ -1,0 +1,22 @@
+tool: bottom
+upstream:
+  type: github_release
+  owner: ClementTsang
+  repo: bottom
+  tag_prefix: "0."
+  include_prerelease: false
+  assets:
+    - pattern: "bottom_x86_64-pc-windows-msvc.zip"
+      platforms: [windows/x64]
+    - pattern: "bottom_x86_64-unknown-linux-gnu.tar.gz"
+      platforms: [linux/x64]
+    - pattern: "bottom_aarch64-unknown-linux-gnu.tar.gz"
+      platforms: [linux/arm64]
+    - pattern: "bottom_x86_64-apple-darwin.tar.gz"
+      platforms: [macos/x64]
+    - pattern: "bottom_aarch64-apple-darwin.tar.gz"
+      platforms: [macos/arm64]
+tag_prefix: "bottom-"
+keep_versions: 0
+license: MIT
+source_url: https://github.com/ClementTsang/bottom

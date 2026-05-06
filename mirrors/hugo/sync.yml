@@ -1,0 +1,20 @@
+tool: hugo
+upstream:
+  type: github_release
+  owner: gohugoio
+  repo: hugo
+  tag_prefix: "v"
+  include_prerelease: false
+  assets:
+    - pattern: "hugo_{version}_windows-amd64.zip"
+      platforms: [windows/x64]
+    - pattern: "hugo_{version}_linux-amd64.tar.gz"
+      platforms: [linux/x64]
+    - pattern: "hugo_{version}_linux-arm64.tar.gz"
+      platforms: [linux/arm64]
+    - pattern: "hugo_{version}_darwin-universal.tar.gz"
+      platforms: [macos/x64, macos/arm64]
+tag_prefix: "hugo-"
+keep_versions: 0
+license: Apache-2.0
+source_url: https://github.com/gohugoio/hugo

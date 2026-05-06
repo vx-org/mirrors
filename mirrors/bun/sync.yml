@@ -1,0 +1,22 @@
+tool: bun
+upstream:
+  type: github_release
+  owner: oven-sh
+  repo: bun
+  tag_prefix: "bun-v"
+  include_prerelease: false
+  assets:
+    - pattern: "bun-windows-x64.zip"
+      platforms: [windows/x64]
+    - pattern: "bun-linux-x64.zip"
+      platforms: [linux/x64]
+    - pattern: "bun-linux-aarch64.zip"
+      platforms: [linux/arm64]
+    - pattern: "bun-darwin-x64.zip"
+      platforms: [macos/x64]
+    - pattern: "bun-darwin-aarch64.zip"
+      platforms: [macos/arm64]
+tag_prefix: "bun-"
+keep_versions: 0
+license: MIT
+source_url: https://github.com/oven-sh/bun

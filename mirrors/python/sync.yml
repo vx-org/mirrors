@@ -1,0 +1,22 @@
+tool: python
+upstream:
+  type: github_release
+  owner: astral-sh
+  repo: python-build-standalone
+  tag_prefix: ""
+  include_prerelease: false
+  assets:
+    - pattern: "cpython-{semver}+[0-9]+-x86_64-pc-windows-msvc-install_only_stripped.tar.gz"
+      platforms: [windows/x64]
+    - pattern: "cpython-{semver}+[0-9]+-x86_64-unknown-linux-gnu-install_only_stripped.tar.gz"
+      platforms: [linux/x64]
+    - pattern: "cpython-{semver}+[0-9]+-aarch64-unknown-linux-gnu-install_only_stripped.tar.gz"
+      platforms: [linux/arm64]
+    - pattern: "cpython-{semver}+[0-9]+-x86_64-apple-darwin-install_only_stripped.tar.gz"
+      platforms: [macos/x64]
+    - pattern: "cpython-{semver}+[0-9]+-aarch64-apple-darwin-install_only_stripped.tar.gz"
+      platforms: [macos/arm64]
+tag_prefix: "python-"
+keep_versions: 0
+license: PSF-2.0
+source_url: https://www.python.org

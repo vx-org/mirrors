@@ -1,0 +1,15 @@
+# TODO: NuGet/NuGet.Client distributes via nuget.org, verify asset pattern
+tool: nuget
+upstream:
+  type: github_release
+  owner: NuGet
+  repo: NuGet.Client
+  tag_prefix: ""
+  include_prerelease: false
+  assets:
+    - pattern: "nuget.exe"
+      platforms: [windows/x64]
+tag_prefix: "nuget-"
+keep_versions: 0
+license: Apache-2.0
+source_url: https://github.com/NuGet/NuGet.Client

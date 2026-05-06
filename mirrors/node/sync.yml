@@ -1,0 +1,8 @@
+tool: node
+upstream:
+  type: nodejs_org
+  lts_only: false
+tag_prefix: "node-"
+keep_versions: 0
+license: MIT
+source_url: https://nodejs.org

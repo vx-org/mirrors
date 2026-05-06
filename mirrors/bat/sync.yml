@@ -1,0 +1,22 @@
+tool: bat
+upstream:
+  type: github_release
+  owner: sharkdp
+  repo: bat
+  tag_prefix: "v"
+  include_prerelease: false
+  assets:
+    - pattern: "bat-v{version}-x86_64-pc-windows-msvc.zip"
+      platforms: [windows/x64]
+    - pattern: "bat-v{version}-x86_64-unknown-linux-gnu.tar.gz"
+      platforms: [linux/x64]
+    - pattern: "bat-v{version}-aarch64-unknown-linux-gnu.tar.gz"
+      platforms: [linux/arm64]
+    - pattern: "bat-v{version}-x86_64-apple-darwin.tar.gz"
+      platforms: [macos/x64]
+    - pattern: "bat-v{version}-aarch64-apple-darwin.tar.gz"
+      platforms: [macos/arm64]
+tag_prefix: "bat-"
+keep_versions: 0
+license: MIT
+source_url: https://github.com/sharkdp/bat

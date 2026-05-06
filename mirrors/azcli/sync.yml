@@ -1,0 +1,18 @@
+tool: azcli
+upstream:
+  type: github_release
+  owner: Azure
+  repo: azure-cli
+  tag_prefix: "azure-cli-"
+  include_prerelease: false
+  assets:
+    - pattern: "azure-cli-{version}-x64.zip"
+      platforms: [windows/x64]
+    - pattern: "azure-cli-{version}-macos-x86_64.tar.gz"
+      platforms: [macos/x64]
+    - pattern: "azure-cli-{version}-macos-arm64.tar.gz"
+      platforms: [macos/arm64]
+tag_prefix: "azcli-"
+keep_versions: 0
+license: MIT
+source_url: https://github.com/Azure/azure-cli

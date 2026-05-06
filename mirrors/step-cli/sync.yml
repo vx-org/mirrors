@@ -1,0 +1,22 @@
+tool: step-cli
+upstream:
+  type: github_release
+  owner: smallstep
+  repo: cli
+  tag_prefix: "v"
+  include_prerelease: false
+  assets:
+    - pattern: "step_windows_{version}_amd64.zip"
+      platforms: [windows/x64]
+    - pattern: "step_linux_{version}_amd64.tar.gz"
+      platforms: [linux/x64]
+    - pattern: "step_linux_{version}_arm64.tar.gz"
+      platforms: [linux/arm64]
+    - pattern: "step_darwin_{version}_amd64.tar.gz"
+      platforms: [macos/x64]
+    - pattern: "step_darwin_{version}_arm64.tar.gz"
+      platforms: [macos/arm64]
+tag_prefix: "step-cli-"
+keep_versions: 0
+license: Apache-2.0
+source_url: https://github.com/smallstep/cli

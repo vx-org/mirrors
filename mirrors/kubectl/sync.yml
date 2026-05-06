@@ -1,0 +1,18 @@
+# Note: kubectl is distributed via dl.k8s.io, not GitHub releases
+# kubernetes/kubernetes repo has no binary release assets
+tool: kubectl
+upstream:
+  type: github_release
+  owner: kubernetes
+  repo: kubernetes
+  tag_prefix: "v"
+  include_prerelease: false
+  assets:
+    - pattern: "kubectl.exe"
+      platforms: [windows/x64]
+    - pattern: "kubectl"
+      platforms: [linux/x64, linux/arm64, macos/x64, macos/arm64]
+tag_prefix: "kubectl-"
+keep_versions: 0
+license: Apache-2.0
+source_url: https://github.com/kubernetes/kubernetes

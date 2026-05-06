@@ -1,0 +1,22 @@
+tool: jq
+upstream:
+  type: github_release
+  owner: jqlang
+  repo: jq
+  tag_prefix: "jq-"
+  include_prerelease: false
+  assets:
+    - pattern: "jq-windows-amd64.exe"
+      platforms: [windows/x64]
+    - pattern: "jq-linux-amd64"
+      platforms: [linux/x64]
+    - pattern: "jq-linux-arm64"
+      platforms: [linux/arm64]
+    - pattern: "jq-macos-amd64"
+      platforms: [macos/x64]
+    - pattern: "jq-macos-arm64"
+      platforms: [macos/arm64]
+tag_prefix: "jq-"
+keep_versions: 0
+license: MIT
+source_url: https://github.com/jqlang/jq

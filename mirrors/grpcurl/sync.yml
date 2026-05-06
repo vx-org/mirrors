@@ -1,0 +1,22 @@
+tool: grpcurl
+upstream:
+  type: github_release
+  owner: fullstorydev
+  repo: grpcurl
+  tag_prefix: "v"
+  include_prerelease: false
+  assets:
+    - pattern: "grpcurl_{version}_windows_x86_64.zip"
+      platforms: [windows/x64]
+    - pattern: "grpcurl_{version}_linux_x86_64.tar.gz"
+      platforms: [linux/x64]
+    - pattern: "grpcurl_{version}_linux_arm64.tar.gz"
+      platforms: [linux/arm64]
+    - pattern: "grpcurl_{version}_osx_x86_64.tar.gz"
+      platforms: [macos/x64]
+    - pattern: "grpcurl_{version}_osx_arm64.tar.gz"
+      platforms: [macos/arm64]
+tag_prefix: "grpcurl-"
+keep_versions: 0
+license: MIT
+source_url: https://github.com/fullstorydev/grpcurl

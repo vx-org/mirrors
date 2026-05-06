@@ -1,0 +1,22 @@
+tool: chezmoi
+upstream:
+  type: github_release
+  owner: twpayne
+  repo: chezmoi
+  tag_prefix: "v"
+  include_prerelease: false
+  assets:
+    - pattern: "chezmoi_{version}_windows_amd64.zip"
+      platforms: [windows/x64]
+    - pattern: "chezmoi_{version}_linux_amd64.tar.gz"
+      platforms: [linux/x64]
+    - pattern: "chezmoi_{version}_linux_arm64.tar.gz"
+      platforms: [linux/arm64]
+    - pattern: "chezmoi_{version}_darwin_amd64.tar.gz"
+      platforms: [macos/x64]
+    - pattern: "chezmoi_{version}_darwin_arm64.tar.gz"
+      platforms: [macos/arm64]
+tag_prefix: "chezmoi-"
+keep_versions: 0
+license: MIT
+source_url: https://github.com/twpayne/chezmoi

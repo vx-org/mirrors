@@ -1,0 +1,20 @@
+tool: ollama
+upstream:
+  type: github_release
+  owner: ollama
+  repo: ollama
+  tag_prefix: "v"
+  include_prerelease: false
+  assets:
+    - pattern: "ollama-windows-amd64.zip"
+      platforms: [windows/x64]
+    - pattern: "ollama-linux-amd64.tar.zst"
+      platforms: [linux/x64]
+    - pattern: "ollama-linux-arm64.tar.zst"
+      platforms: [linux/arm64]
+    - pattern: "ollama-darwin.tgz"
+      platforms: [macos/x64, macos/arm64]
+tag_prefix: "ollama-"
+keep_versions: 0
+license: MIT
+source_url: https://github.com/ollama/ollama

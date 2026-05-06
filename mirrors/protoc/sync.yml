@@ -1,0 +1,22 @@
+tool: protoc
+upstream:
+  type: github_release
+  owner: protocolbuffers
+  repo: protobuf
+  tag_prefix: "v"
+  include_prerelease: false
+  assets:
+    - pattern: "protoc-{version}-win64.zip"
+      platforms: [windows/x64]
+    - pattern: "protoc-{version}-linux-x86_64.zip"
+      platforms: [linux/x64]
+    - pattern: "protoc-{version}-linux-aarch_64.zip"
+      platforms: [linux/arm64]
+    - pattern: "protoc-{version}-osx-x86_64.zip"
+      platforms: [macos/x64]
+    - pattern: "protoc-{version}-osx-aarch_64.zip"
+      platforms: [macos/arm64]
+tag_prefix: "protoc-"
+keep_versions: 0
+license: BSD-3-Clause
+source_url: https://github.com/protocolbuffers/protobuf

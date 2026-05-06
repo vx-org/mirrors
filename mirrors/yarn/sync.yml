@@ -1,0 +1,15 @@
+# TODO: yarnpkg/berry has no binary release assets (Node.js package)
+tool: yarn
+upstream:
+  type: github_release
+  owner: yarnpkg
+  repo: berry
+  tag_prefix: "@yarnpkg/cli/"
+  include_prerelease: false
+  assets:
+    - pattern: "yarn-{version}.cjs"
+      platforms: [windows/x64, linux/x64, linux/arm64, macos/x64, macos/arm64]
+tag_prefix: "yarn-"
+keep_versions: 0
+license: MIT
+source_url: https://github.com/yarnpkg/berry

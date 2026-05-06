@@ -1,0 +1,15 @@
+# TODO: ip7z/7-Zip has no GitHub releases (uses SourceForge). verify asset pattern
+tool: 7zip
+upstream:
+  type: github_release
+  owner: ip7z
+  repo: 7-Zip
+  tag_prefix: "7z"
+  include_prerelease: false
+  assets:
+    - pattern: "7z{version}-extra.7z"
+      platforms: [windows/x64]
+tag_prefix: "7zip-"
+keep_versions: 0
+license: MIT
+source_url: https://github.com/ip7z/7-Zip

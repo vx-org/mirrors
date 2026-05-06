@@ -1,0 +1,21 @@
+# TODO: conan-io/conan uses PyPI as primary distribution, verify asset pattern
+tool: conan
+upstream:
+  type: github_release
+  owner: conan-io
+  repo: conan
+  tag_prefix: ""
+  include_prerelease: false
+  assets:
+    - pattern: "conan-{version}-Windows-x86_64.zip"
+      platforms: [windows/x64]
+    - pattern: "conan-{version}-Linux-x86_64.tar.gz"
+      platforms: [linux/x64]
+    - pattern: "conan-{version}-macos-x86_64.tar.gz"
+      platforms: [macos/x64]
+    - pattern: "conan-{version}-macos-arm64.tar.gz"
+      platforms: [macos/arm64]
+tag_prefix: "conan-"
+keep_versions: 0
+license: MIT
+source_url: https://github.com/conan-io/conan

@@ -1,0 +1,22 @@
+tool: duf
+upstream:
+  type: github_release
+  owner: muesli
+  repo: duf
+  tag_prefix: "v"
+  include_prerelease: false
+  assets:
+    - pattern: "duf_{version}_windows_x86_64.zip"
+      platforms: [windows/x64]
+    - pattern: "duf_{version}_linux_x86_64.tar.gz"
+      platforms: [linux/x64]
+    - pattern: "duf_{version}_linux_arm64.tar.gz"
+      platforms: [linux/arm64]
+    - pattern: "duf_{version}_darwin_x86_64.tar.gz"
+      platforms: [macos/x64]
+    - pattern: "duf_{version}_darwin_arm64.tar.gz"
+      platforms: [macos/arm64]
+tag_prefix: "duf-"
+keep_versions: 0
+license: MIT
+source_url: https://github.com/muesli/duf

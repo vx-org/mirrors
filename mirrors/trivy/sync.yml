@@ -1,0 +1,22 @@
+tool: trivy
+upstream:
+  type: github_release
+  owner: aquasecurity
+  repo: trivy
+  tag_prefix: "v"
+  include_prerelease: false
+  assets:
+    - pattern: "trivy_{version}_Windows-64bit.zip"
+      platforms: [windows/x64]
+    - pattern: "trivy_{version}_Linux-64bit.tar.gz"
+      platforms: [linux/x64]
+    - pattern: "trivy_{version}_Linux-ARM64.tar.gz"
+      platforms: [linux/arm64]
+    - pattern: "trivy_{version}_macOS-64bit.tar.gz"
+      platforms: [macos/x64]
+    - pattern: "trivy_{version}_macOS-ARM64.tar.gz"
+      platforms: [macos/arm64]
+tag_prefix: "trivy-"
+keep_versions: 0
+license: Apache-2.0
+source_url: https://github.com/aquasecurity/trivy

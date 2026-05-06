@@ -1,0 +1,22 @@
+tool: yazi
+upstream:
+  type: github_release
+  owner: sxyazi
+  repo: yazi
+  tag_prefix: "v"
+  include_prerelease: false
+  assets:
+    - pattern: "yazi-x86_64-pc-windows-msvc.zip"
+      platforms: [windows/x64]
+    - pattern: "yazi-x86_64-unknown-linux-gnu.zip"
+      platforms: [linux/x64]
+    - pattern: "yazi-aarch64-unknown-linux-gnu.zip"
+      platforms: [linux/arm64]
+    - pattern: "yazi-x86_64-apple-darwin.zip"
+      platforms: [macos/x64]
+    - pattern: "yazi-aarch64-apple-darwin.zip"
+      platforms: [macos/arm64]
+tag_prefix: "yazi-"
+keep_versions: 0
+license: MIT
+source_url: https://github.com/sxyazi/yazi

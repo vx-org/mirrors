@@ -1,0 +1,20 @@
+tool: cmake
+upstream:
+  type: github_release
+  owner: Kitware
+  repo: CMake
+  tag_prefix: "v"
+  include_prerelease: false
+  assets:
+    - pattern: "cmake-{version}-windows-x86_64.zip"
+      platforms: [windows/x64]
+    - pattern: "cmake-{version}-linux-x86_64.tar.gz"
+      platforms: [linux/x64]
+    - pattern: "cmake-{version}-linux-aarch64.tar.gz"
+      platforms: [linux/arm64]
+    - pattern: "cmake-{version}-macos-universal.tar.gz"
+      platforms: [macos/x64, macos/arm64]
+tag_prefix: "cmake-"
+keep_versions: 0
+license: BSD-3-Clause
+source_url: https://github.com/Kitware/CMake

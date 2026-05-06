@@ -1,0 +1,22 @@
+tool: buf
+upstream:
+  type: github_release
+  owner: bufbuild
+  repo: buf
+  tag_prefix: "v"
+  include_prerelease: false
+  assets:
+    - pattern: "buf-Windows-x86_64.zip"
+      platforms: [windows/x64]
+    - pattern: "buf-Linux-x86_64.tar.gz"
+      platforms: [linux/x64]
+    - pattern: "buf-Linux-aarch64.tar.gz"
+      platforms: [linux/arm64]
+    - pattern: "buf-Darwin-x86_64.tar.gz"
+      platforms: [macos/x64]
+    - pattern: "buf-Darwin-arm64.tar.gz"
+      platforms: [macos/arm64]
+tag_prefix: "buf-"
+keep_versions: 0
+license: Apache-2.0
+source_url: https://github.com/bufbuild/buf

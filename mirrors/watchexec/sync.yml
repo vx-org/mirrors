@@ -1,0 +1,22 @@
+tool: watchexec
+upstream:
+  type: github_release
+  owner: watchexec
+  repo: watchexec
+  tag_prefix: "v"
+  include_prerelease: false
+  assets:
+    - pattern: "watchexec-{version}-x86_64-pc-windows-msvc.zip"
+      platforms: [windows/x64]
+    - pattern: "watchexec-{version}-x86_64-unknown-linux-gnu.tar.xz"
+      platforms: [linux/x64]
+    - pattern: "watchexec-{version}-aarch64-unknown-linux-gnu.tar.xz"
+      platforms: [linux/arm64]
+    - pattern: "watchexec-{version}-x86_64-apple-darwin.tar.xz"
+      platforms: [macos/x64]
+    - pattern: "watchexec-{version}-aarch64-apple-darwin.tar.xz"
+      platforms: [macos/arm64]
+tag_prefix: "watchexec-"
+keep_versions: 0
+license: Apache-2.0
+source_url: https://github.com/watchexec/watchexec

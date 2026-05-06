@@ -1,0 +1,8 @@
+tool: java
+upstream:
+  type: adoptium
+  lts_only: true
+tag_prefix: "java-"
+keep_versions: 0
+license: GPL-2.0-with-classpath-exception
+source_url: https://adoptium.net

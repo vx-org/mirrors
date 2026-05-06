@@ -1,0 +1,22 @@
+tool: lazydocker
+upstream:
+  type: github_release
+  owner: jesseduffield
+  repo: lazydocker
+  tag_prefix: "v"
+  include_prerelease: false
+  assets:
+    - pattern: "lazydocker_{version}_Windows_x86_64.zip"
+      platforms: [windows/x64]
+    - pattern: "lazydocker_{version}_Linux_x86_64.tar.gz"
+      platforms: [linux/x64]
+    - pattern: "lazydocker_{version}_Linux_arm64.tar.gz"
+      platforms: [linux/arm64]
+    - pattern: "lazydocker_{version}_Darwin_x86_64.tar.gz"
+      platforms: [macos/x64]
+    - pattern: "lazydocker_{version}_Darwin_arm64.tar.gz"
+      platforms: [macos/arm64]
+tag_prefix: "lazydocker-"
+keep_versions: 0
+license: MIT
+source_url: https://github.com/jesseduffield/lazydocker

@@ -1,0 +1,22 @@
+tool: gping
+upstream:
+  type: github_release
+  owner: orf
+  repo: gping
+  tag_prefix: "gping-v"
+  include_prerelease: false
+  assets:
+    - pattern: "gping-Windows-msvc-x86_64.zip"
+      platforms: [windows/x64]
+    - pattern: "gping-Linux-gnu-x86_64.tar.gz"
+      platforms: [linux/x64]
+    - pattern: "gping-Linux-gnu-arm64.tar.gz"
+      platforms: [linux/arm64]
+    - pattern: "gping-macOS-x86_64.tar.gz"
+      platforms: [macos/x64]
+    - pattern: "gping-macOS-arm64.tar.gz"
+      platforms: [macos/arm64]
+tag_prefix: "gping-"
+keep_versions: 0
+license: MIT
+source_url: https://github.com/orf/gping

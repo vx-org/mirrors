@@ -1,0 +1,15 @@
+# TODO: xcodebuild is macOS-only Apple developer tool, no GitHub release assets
+tool: xcodebuild
+upstream:
+  type: github_release
+  owner: apple
+  repo: xcode
+  tag_prefix: ""
+  include_prerelease: false
+  assets:
+    - pattern: "Xcode_{version}.xip"
+      platforms: [macos/x64, macos/arm64]
+tag_prefix: "xcodebuild-"
+keep_versions: 0
+license: MIT
+source_url: https://github.com/apple/xcode

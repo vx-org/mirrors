@@ -1,0 +1,22 @@
+tool: minikube
+upstream:
+  type: github_release
+  owner: kubernetes
+  repo: minikube
+  tag_prefix: "v"
+  include_prerelease: false
+  assets:
+    - pattern: "minikube-windows-amd64.exe"
+      platforms: [windows/x64]
+    - pattern: "minikube-linux-amd64.tar.gz"
+      platforms: [linux/x64]
+    - pattern: "minikube-linux-arm64.tar.gz"
+      platforms: [linux/arm64]
+    - pattern: "minikube-darwin-amd64.tar.gz"
+      platforms: [macos/x64]
+    - pattern: "minikube-darwin-arm64.tar.gz"
+      platforms: [macos/arm64]
+tag_prefix: "minikube-"
+keep_versions: 0
+license: Apache-2.0
+source_url: https://github.com/kubernetes/minikube

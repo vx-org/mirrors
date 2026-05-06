@@ -1,0 +1,18 @@
+tool: podman
+upstream:
+  type: github_release
+  owner: containers
+  repo: podman
+  tag_prefix: "v"
+  include_prerelease: false
+  assets:
+    - pattern: "podman-installer-windows-amd64.exe"
+      platforms: [windows/x64]
+    - pattern: "podman-remote-release-darwin_amd64.zip"
+      platforms: [macos/x64]
+    - pattern: "podman-remote-release-darwin_arm64.zip"
+      platforms: [macos/arm64]
+tag_prefix: "podman-"
+keep_versions: 0
+license: Apache-2.0
+source_url: https://github.com/containers/podman

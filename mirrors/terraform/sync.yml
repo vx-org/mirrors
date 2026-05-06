@@ -1,0 +1,11 @@
+tool: terraform
+upstream:
+  type: hashicorp
+  tool_name: terraform
+  owner: hashicorp
+  repo: terraform
+  tag_prefix: "v"
+tag_prefix: "terraform-"
+keep_versions: 0
+license: BUSL-1.1
+source_url: https://www.terraform.io

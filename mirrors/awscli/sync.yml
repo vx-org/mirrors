@@ -1,0 +1,21 @@
+# TODO: aws/aws-cli uses PyPI not GitHub releases. verify asset pattern
+tool: awscli
+upstream:
+  type: github_release
+  owner: aws
+  repo: aws-cli
+  tag_prefix: "v"
+  include_prerelease: false
+  assets:
+    - pattern: "awscli-exe-windows-x86_64.zip"
+      platforms: [windows/x64]
+    - pattern: "awscli-exe-linux-x86_64.zip"
+      platforms: [linux/x64]
+    - pattern: "awscli-exe-linux-aarch64.zip"
+      platforms: [linux/arm64]
+    - pattern: "AWSCLIV2.pkg"
+      platforms: [macos/x64, macos/arm64]
+tag_prefix: "awscli-"
+keep_versions: 0
+license: Apache-2.0
+source_url: https://github.com/aws/aws-cli

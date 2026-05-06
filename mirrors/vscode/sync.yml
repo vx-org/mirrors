@@ -1,0 +1,20 @@
+tool: vscode
+upstream:
+  type: github_release
+  owner: microsoft
+  repo: vscode
+  tag_prefix: ""
+  include_prerelease: false
+  assets:
+    - pattern: "VSCode-win32-x64-{version}.zip"
+      platforms: [windows/x64]
+    - pattern: "VSCode-linux-x64-{version}.tar.gz"
+      platforms: [linux/x64]
+    - pattern: "VSCode-linux-arm64-{version}.tar.gz"
+      platforms: [linux/arm64]
+    - pattern: "VSCode-darwin-universal-{version}.zip"
+      platforms: [macos/x64, macos/arm64]
+tag_prefix: "vscode-"
+keep_versions: 0
+license: MIT
+source_url: https://github.com/microsoft/vscode

@@ -1,0 +1,22 @@
+tool: ctlptl
+upstream:
+  type: github_release
+  owner: tilt-dev
+  repo: ctlptl
+  tag_prefix: "v"
+  include_prerelease: false
+  assets:
+    - pattern: "ctlptl.{version}.windows.x86_64.zip"
+      platforms: [windows/x64]
+    - pattern: "ctlptl.{version}.linux.x86_64.tar.gz"
+      platforms: [linux/x64]
+    - pattern: "ctlptl.{version}.linux.arm64.tar.gz"
+      platforms: [linux/arm64]
+    - pattern: "ctlptl.{version}.mac.x86_64.tar.gz"
+      platforms: [macos/x64]
+    - pattern: "ctlptl.{version}.mac.arm64.tar.gz"
+      platforms: [macos/arm64]
+tag_prefix: "ctlptl-"
+keep_versions: 0
+license: Apache-2.0
+source_url: https://github.com/tilt-dev/ctlptl

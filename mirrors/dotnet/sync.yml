@@ -1,0 +1,8 @@
+tool: dotnet
+upstream:
+  type: dotnet_microsoft
+  lts_only: true
+tag_prefix: "dotnet-"
+keep_versions: 0
+license: MIT
+source_url: https://dotnet.microsoft.com

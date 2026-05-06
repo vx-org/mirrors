@@ -1,0 +1,22 @@
+tool: lima
+upstream:
+  type: github_release
+  owner: lima-vm
+  repo: lima
+  tag_prefix: "v"
+  include_prerelease: false
+  assets:
+    - pattern: "lima-{version}-Windows-AMD64.zip"
+      platforms: [windows/x64]
+    - pattern: "lima-{version}-Linux-x86_64.tar.gz"
+      platforms: [linux/x64]
+    - pattern: "lima-{version}-Linux-aarch64.tar.gz"
+      platforms: [linux/arm64]
+    - pattern: "lima-{version}-Darwin-x86_64.tar.gz"
+      platforms: [macos/x64]
+    - pattern: "lima-{version}-Darwin-arm64.tar.gz"
+      platforms: [macos/arm64]
+tag_prefix: "lima-"
+keep_versions: 0
+license: Apache-2.0
+source_url: https://github.com/lima-vm/lima

@@ -1,0 +1,22 @@
+tool: grype
+upstream:
+  type: github_release
+  owner: anchore
+  repo: grype
+  tag_prefix: "v"
+  include_prerelease: false
+  assets:
+    - pattern: "grype_{version}_windows_amd64.zip"
+      platforms: [windows/x64]
+    - pattern: "grype_{version}_linux_amd64.tar.gz"
+      platforms: [linux/x64]
+    - pattern: "grype_{version}_linux_arm64.tar.gz"
+      platforms: [linux/arm64]
+    - pattern: "grype_{version}_darwin_amd64.tar.gz"
+      platforms: [macos/x64]
+    - pattern: "grype_{version}_darwin_arm64.tar.gz"
+      platforms: [macos/arm64]
+tag_prefix: "grype-"
+keep_versions: 0
+license: Apache-2.0
+source_url: https://github.com/anchore/grype

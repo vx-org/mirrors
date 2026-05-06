@@ -1,0 +1,22 @@
+tool: ripgrep
+upstream:
+  type: github_release
+  owner: BurntSushi
+  repo: ripgrep
+  tag_prefix: ""
+  include_prerelease: false
+  assets:
+    - pattern: "ripgrep-{version}-x86_64-pc-windows-msvc.zip"
+      platforms: [windows/x64]
+    - pattern: "ripgrep-{version}-x86_64-unknown-linux-musl.tar.gz"
+      platforms: [linux/x64]
+    - pattern: "ripgrep-{version}-aarch64-unknown-linux-gnu.tar.gz"
+      platforms: [linux/arm64]
+    - pattern: "ripgrep-{version}-x86_64-apple-darwin.tar.gz"
+      platforms: [macos/x64]
+    - pattern: "ripgrep-{version}-aarch64-apple-darwin.tar.gz"
+      platforms: [macos/arm64]
+tag_prefix: "ripgrep-"
+keep_versions: 0
+license: MIT
+source_url: https://github.com/BurntSushi/ripgrep

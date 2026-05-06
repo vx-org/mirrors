@@ -1,0 +1,23 @@
+# TODO: nrwl/nx distributes via npm, verify asset pattern for binary
+tool: nx
+upstream:
+  type: github_release
+  owner: nrwl
+  repo: nx
+  tag_prefix: ""
+  include_prerelease: false
+  assets:
+    - pattern: "nx-win32-x64-msvc.exe"
+      platforms: [windows/x64]
+    - pattern: "nx-linux-x64-gnu"
+      platforms: [linux/x64]
+    - pattern: "nx-linux-arm64-gnu"
+      platforms: [linux/arm64]
+    - pattern: "nx-darwin-x64"
+      platforms: [macos/x64]
+    - pattern: "nx-darwin-arm64"
+      platforms: [macos/arm64]
+tag_prefix: "nx-"
+keep_versions: 0
+license: MIT
+source_url: https://github.com/nrwl/nx

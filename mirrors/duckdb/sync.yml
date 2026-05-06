@@ -1,0 +1,22 @@
+tool: duckdb
+upstream:
+  type: github_release
+  owner: duckdb
+  repo: duckdb
+  tag_prefix: "v"
+  include_prerelease: false
+  assets:
+    - pattern: "duckdb_cli-windows-amd64.zip"
+      platforms: [windows/x64]
+    - pattern: "duckdb_cli-linux-amd64.zip"
+      platforms: [linux/x64]
+    - pattern: "duckdb_cli-linux-arm64.zip"
+      platforms: [linux/arm64]
+    - pattern: "duckdb_cli-osx-amd64.zip"
+      platforms: [macos/x64]
+    - pattern: "duckdb_cli-osx-arm64.zip"
+      platforms: [macos/arm64]
+tag_prefix: "duckdb-"
+keep_versions: 0
+license: MIT
+source_url: https://github.com/duckdb/duckdb

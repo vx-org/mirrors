@@ -1,0 +1,22 @@
+tool: gh
+upstream:
+  type: github_release
+  owner: cli
+  repo: cli
+  tag_prefix: "v"
+  include_prerelease: false
+  assets:
+    - pattern: "gh_{version}_windows_amd64.zip"
+      platforms: [windows/x64]
+    - pattern: "gh_{version}_linux_amd64.tar.gz"
+      platforms: [linux/x64]
+    - pattern: "gh_{version}_linux_arm64.tar.gz"
+      platforms: [linux/arm64]
+    - pattern: "gh_{version}_macOS_amd64.zip"
+      platforms: [macos/x64]
+    - pattern: "gh_{version}_macOS_arm64.zip"
+      platforms: [macos/arm64]
+tag_prefix: "gh-"
+keep_versions: 0
+license: MIT
+source_url: https://github.com/cli/cli

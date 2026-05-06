@@ -1,0 +1,22 @@
+tool: mise
+upstream:
+  type: github_release
+  owner: jdx
+  repo: mise
+  tag_prefix: "v"
+  include_prerelease: false
+  assets:
+    - pattern: "mise-v{version}-windows-x64.zip"
+      platforms: [windows/x64]
+    - pattern: "mise-v{version}-linux-x64.tar.gz"
+      platforms: [linux/x64]
+    - pattern: "mise-v{version}-linux-arm64.tar.gz"
+      platforms: [linux/arm64]
+    - pattern: "mise-v{version}-macos-x64.tar.gz"
+      platforms: [macos/x64]
+    - pattern: "mise-v{version}-macos-arm64.tar.gz"
+      platforms: [macos/arm64]
+tag_prefix: "mise-"
+keep_versions: 0
+license: MIT
+source_url: https://github.com/jdx/mise

@@ -1,0 +1,20 @@
+tool: xmake
+upstream:
+  type: github_release
+  owner: xmake-io
+  repo: xmake
+  tag_prefix: "v"
+  include_prerelease: false
+  assets:
+    - pattern: "xmake-bundle-v{version}.win64.exe"
+      platforms: [windows/x64]
+    - pattern: "xmake-bundle-v{version}.linux.x86_64"
+      platforms: [linux/x64]
+    - pattern: "xmake-bundle-v{version}.macos.x86_64"
+      platforms: [macos/x64]
+    - pattern: "xmake-bundle-v{version}.macos.arm64"
+      platforms: [macos/arm64]
+tag_prefix: "xmake-"
+keep_versions: 0
+license: Apache-2.0
+source_url: https://github.com/xmake-io/xmake

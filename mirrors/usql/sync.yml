@@ -1,0 +1,22 @@
+tool: usql
+upstream:
+  type: github_release
+  owner: xo
+  repo: usql
+  tag_prefix: "v"
+  include_prerelease: false
+  assets:
+    - pattern: "usql-{version}-windows-amd64.zip"
+      platforms: [windows/x64]
+    - pattern: "usql-{version}-linux-amd64.tar.bz2"
+      platforms: [linux/x64]
+    - pattern: "usql-{version}-linux-arm64.tar.bz2"
+      platforms: [linux/arm64]
+    - pattern: "usql-{version}-darwin-amd64.tar.bz2"
+      platforms: [macos/x64]
+    - pattern: "usql-{version}-darwin-arm64.tar.bz2"
+      platforms: [macos/arm64]
+tag_prefix: "usql-"
+keep_versions: 0
+license: MIT
+source_url: https://github.com/xo/usql

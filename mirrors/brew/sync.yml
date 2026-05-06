@@ -1,0 +1,15 @@
+# TODO: Homebrew/brew is macOS-only package manager, no binary release assets
+tool: brew
+upstream:
+  type: github_release
+  owner: Homebrew
+  repo: brew
+  tag_prefix: ""
+  include_prerelease: false
+  assets:
+    - pattern: "Homebrew-{version}.pkg"
+      platforms: [macos/x64, macos/arm64]
+tag_prefix: "brew-"
+keep_versions: 0
+license: MIT
+source_url: https://github.com/Homebrew/brew

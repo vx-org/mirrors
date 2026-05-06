@@ -1,0 +1,22 @@
+tool: dive
+upstream:
+  type: github_release
+  owner: wagoodman
+  repo: dive
+  tag_prefix: "v"
+  include_prerelease: false
+  assets:
+    - pattern: "dive_{version}_windows_amd64.zip"
+      platforms: [windows/x64]
+    - pattern: "dive_{version}_linux_amd64.tar.gz"
+      platforms: [linux/x64]
+    - pattern: "dive_{version}_linux_arm64.tar.gz"
+      platforms: [linux/arm64]
+    - pattern: "dive_{version}_darwin_amd64.tar.gz"
+      platforms: [macos/x64]
+    - pattern: "dive_{version}_darwin_arm64.tar.gz"
+      platforms: [macos/arm64]
+tag_prefix: "dive-"
+keep_versions: 0
+license: MIT
+source_url: https://github.com/wagoodman/dive

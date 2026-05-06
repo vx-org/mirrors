@@ -1,0 +1,20 @@
+tool: ccache
+upstream:
+  type: github_release
+  owner: ccache
+  repo: ccache
+  tag_prefix: "v"
+  include_prerelease: false
+  assets:
+    - pattern: "ccache-{version}-windows-x86_64.zip"
+      platforms: [windows/x64]
+    - pattern: "ccache-{version}-linux-x86_64.tar.gz"
+      platforms: [linux/x64]
+    - pattern: "ccache-{version}-linux-aarch64-glibc.tar.gz"
+      platforms: [linux/arm64]
+    - pattern: "ccache-{version}-darwin.tar.gz"
+      platforms: [macos/x64, macos/arm64]
+tag_prefix: "ccache-"
+keep_versions: 0
+license: GPL-3.0
+source_url: https://github.com/ccache/ccache

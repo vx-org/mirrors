@@ -1,0 +1,22 @@
+tool: lefthook
+upstream:
+  type: github_release
+  owner: evilmartians
+  repo: lefthook
+  tag_prefix: "v"
+  include_prerelease: false
+  assets:
+    - pattern: "lefthook_{version}_Windows_x86_64.zip"
+      platforms: [windows/x64]
+    - pattern: "lefthook_{version}_Linux_x86_64.tar.gz"
+      platforms: [linux/x64]
+    - pattern: "lefthook_{version}_Linux_aarch64.tar.gz"
+      platforms: [linux/arm64]
+    - pattern: "lefthook_{version}_MacOS_x86_64.tar.gz"
+      platforms: [macos/x64]
+    - pattern: "lefthook_{version}_MacOS_arm64.tar.gz"
+      platforms: [macos/arm64]
+tag_prefix: "lefthook-"
+keep_versions: 0
+license: MIT
+source_url: https://github.com/evilmartians/lefthook

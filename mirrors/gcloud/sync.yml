@@ -1,0 +1,23 @@
+# TODO: GoogleCloudPlatform/cloud-sdk-go has no binary release assets, gcloud downloads via https://cloud.google.com/sdk/docs/install
+tool: gcloud
+upstream:
+  type: github_release
+  owner: GoogleCloudPlatform
+  repo: cloud-sdk-go
+  tag_prefix: ""
+  include_prerelease: false
+  assets:
+    - pattern: "google-cloud-sdk-{version}-windows-x86_64.zip"
+      platforms: [windows/x64]
+    - pattern: "google-cloud-sdk-{version}-linux-x86_64.tar.gz"
+      platforms: [linux/x64]
+    - pattern: "google-cloud-sdk-{version}-linux-arm.tar.gz"
+      platforms: [linux/arm64]
+    - pattern: "google-cloud-sdk-{version}-darwin-x86_64.tar.gz"
+      platforms: [macos/x64]
+    - pattern: "google-cloud-sdk-{version}-darwin-arm.tar.gz"
+      platforms: [macos/arm64]
+tag_prefix: "gcloud-"
+keep_versions: 0
+license: Apache-2.0
+source_url: https://github.com/GoogleCloudPlatform/cloud-sdk-go

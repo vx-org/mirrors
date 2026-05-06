@@ -1,0 +1,22 @@
+tool: pwsh
+upstream:
+  type: github_release
+  owner: PowerShell
+  repo: PowerShell
+  tag_prefix: "v"
+  include_prerelease: false
+  assets:
+    - pattern: "PowerShell-{version}-win-x64.zip"
+      platforms: [windows/x64]
+    - pattern: "powershell-{version}-linux-x64.tar.gz"
+      platforms: [linux/x64]
+    - pattern: "powershell-{version}-linux-arm64.tar.gz"
+      platforms: [linux/arm64]
+    - pattern: "powershell-{version}-osx-x64.tar.gz"
+      platforms: [macos/x64]
+    - pattern: "powershell-{version}-osx-arm64.tar.gz"
+      platforms: [macos/arm64]
+tag_prefix: "pwsh-"
+keep_versions: 0
+license: MIT
+source_url: https://github.com/PowerShell/PowerShell

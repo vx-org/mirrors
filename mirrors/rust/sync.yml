@@ -1,0 +1,7 @@
+tool: rust
+upstream:
+  type: rust_rustup
+tag_prefix: "rustup-"
+keep_versions: 0
+license: MIT
+source_url: https://rustup.rs

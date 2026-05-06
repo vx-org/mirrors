@@ -1,0 +1,11 @@
+tool: vault
+upstream:
+  type: hashicorp
+  tool_name: vault
+  owner: hashicorp
+  repo: vault
+  tag_prefix: "v"
+tag_prefix: "vault-"
+keep_versions: 0
+license: BUSL-1.1
+source_url: https://www.vaultproject.io

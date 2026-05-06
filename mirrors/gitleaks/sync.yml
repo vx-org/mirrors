@@ -1,0 +1,22 @@
+tool: gitleaks
+upstream:
+  type: github_release
+  owner: gitleaks
+  repo: gitleaks
+  tag_prefix: "v"
+  include_prerelease: false
+  assets:
+    - pattern: "gitleaks_{version}_windows_x64.zip"
+      platforms: [windows/x64]
+    - pattern: "gitleaks_{version}_linux_x64.tar.gz"
+      platforms: [linux/x64]
+    - pattern: "gitleaks_{version}_linux_arm64.tar.gz"
+      platforms: [linux/arm64]
+    - pattern: "gitleaks_{version}_darwin_x64.tar.gz"
+      platforms: [macos/x64]
+    - pattern: "gitleaks_{version}_darwin_arm64.tar.gz"
+      platforms: [macos/arm64]
+tag_prefix: "gitleaks-"
+keep_versions: 0
+license: MIT
+source_url: https://github.com/gitleaks/gitleaks

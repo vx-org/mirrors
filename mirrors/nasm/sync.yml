@@ -1,0 +1,17 @@
+# TODO: netwide-assembler/nasm has no GitHub releases, uses official website
+tool: nasm
+upstream:
+  type: github_release
+  owner: netwide-assembler
+  repo: nasm
+  tag_prefix: ""
+  include_prerelease: false
+  assets:
+    - pattern: "nasm-{version}-win64.zip"
+      platforms: [windows/x64]
+    - pattern: "nasm-{version}-linux.zip"
+      platforms: [linux/x64]
+tag_prefix: "nasm-"
+keep_versions: 0
+license: BSD-2-Clause
+source_url: https://github.com/netwide-assembler/nasm

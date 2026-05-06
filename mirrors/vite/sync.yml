@@ -1,0 +1,15 @@
+# TODO: vitejs/vite distributes via npm, no binary release assets
+tool: vite
+upstream:
+  type: github_release
+  owner: vitejs
+  repo: vite
+  tag_prefix: "v"
+  include_prerelease: false
+  assets:
+    - pattern: "vite-{version}.tgz"
+      platforms: [windows/x64, linux/x64, linux/arm64, macos/x64, macos/arm64]
+tag_prefix: "vite-"
+keep_versions: 0
+license: MIT
+source_url: https://github.com/vitejs/vite

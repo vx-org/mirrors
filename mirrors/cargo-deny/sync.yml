@@ -1,0 +1,22 @@
+tool: cargo-deny
+upstream:
+  type: github_release
+  owner: EmbarkStudios
+  repo: cargo-deny
+  tag_prefix: ""
+  include_prerelease: false
+  assets:
+    - pattern: "cargo-deny-{version}-x86_64-pc-windows-msvc.tar.gz"
+      platforms: [windows/x64]
+    - pattern: "cargo-deny-{version}-x86_64-unknown-linux-musl.tar.gz"
+      platforms: [linux/x64]
+    - pattern: "cargo-deny-{version}-aarch64-unknown-linux-musl.tar.gz"
+      platforms: [linux/arm64]
+    - pattern: "cargo-deny-{version}-x86_64-apple-darwin.tar.gz"
+      platforms: [macos/x64]
+    - pattern: "cargo-deny-{version}-aarch64-apple-darwin.tar.gz"
+      platforms: [macos/arm64]
+tag_prefix: "cargo-deny-"
+keep_versions: 0
+license: MIT
+source_url: https://github.com/EmbarkStudios/cargo-deny

@@ -1,0 +1,14 @@
+tool: git
+upstream:
+  type: github_release
+  owner: git-for-windows
+  repo: git
+  tag_prefix: "v"
+  include_prerelease: false
+  assets:
+    - pattern: "Git-{version}-64-bit.exe"
+      platforms: [windows/x64]
+tag_prefix: "git-"
+keep_versions: 0
+license: GPL-2.0
+source_url: https://github.com/git-for-windows/git

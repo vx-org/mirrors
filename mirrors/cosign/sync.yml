@@ -1,0 +1,22 @@
+tool: cosign
+upstream:
+  type: github_release
+  owner: sigstore
+  repo: cosign
+  tag_prefix: "v"
+  include_prerelease: false
+  assets:
+    - pattern: "cosign-windows-amd64.exe"
+      platforms: [windows/x64]
+    - pattern: "cosign-linux-amd64"
+      platforms: [linux/x64]
+    - pattern: "cosign-linux-arm64"
+      platforms: [linux/arm64]
+    - pattern: "cosign-darwin-amd64"
+      platforms: [macos/x64]
+    - pattern: "cosign-darwin-arm64"
+      platforms: [macos/arm64]
+tag_prefix: "cosign-"
+keep_versions: 0
+license: Apache-2.0
+source_url: https://github.com/sigstore/cosign

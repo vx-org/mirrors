@@ -1,0 +1,16 @@
+tool: imagemagick
+upstream:
+  type: github_release
+  owner: ImageMagick
+  repo: ImageMagick
+  tag_prefix: ""
+  include_prerelease: false
+  assets:
+    - pattern: "ImageMagick-{version}-portable-Q16-HDRI-x64.7z"
+      platforms: [windows/x64]
+    - pattern: "ImageMagick-{version}-portable-Q16-HDRI-arm64.7z"
+      platforms: [macos/arm64, windows/arm64]
+tag_prefix: "imagemagick-"
+keep_versions: 0
+license: Apache-2.0
+source_url: https://github.com/ImageMagick/ImageMagick

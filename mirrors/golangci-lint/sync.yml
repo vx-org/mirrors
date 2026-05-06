@@ -1,0 +1,22 @@
+tool: golangci-lint
+upstream:
+  type: github_release
+  owner: golangci
+  repo: golangci-lint
+  tag_prefix: "v"
+  include_prerelease: false
+  assets:
+    - pattern: "golangci-lint-{version}-windows-amd64.zip"
+      platforms: [windows/x64]
+    - pattern: "golangci-lint-{version}-linux-amd64.tar.gz"
+      platforms: [linux/x64]
+    - pattern: "golangci-lint-{version}-linux-arm64.tar.gz"
+      platforms: [linux/arm64]
+    - pattern: "golangci-lint-{version}-darwin-amd64.tar.gz"
+      platforms: [macos/x64]
+    - pattern: "golangci-lint-{version}-darwin-arm64.tar.gz"
+      platforms: [macos/arm64]
+tag_prefix: "golangci-lint-"
+keep_versions: 0
+license: GPL-3.0
+source_url: https://github.com/golangci/golangci-lint

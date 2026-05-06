@@ -1,0 +1,8 @@
+tool: go
+upstream:
+  type: go_dev
+  stable_only: true
+tag_prefix: "go-"
+keep_versions: 0
+license: BSD-3-Clause
+source_url: https://go.dev

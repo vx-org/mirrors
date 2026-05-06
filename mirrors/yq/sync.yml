@@ -1,0 +1,22 @@
+tool: yq
+upstream:
+  type: github_release
+  owner: mikefarah
+  repo: yq
+  tag_prefix: "v"
+  include_prerelease: false
+  assets:
+    - pattern: "yq_windows_amd64.exe"
+      platforms: [windows/x64]
+    - pattern: "yq_linux_amd64"
+      platforms: [linux/x64]
+    - pattern: "yq_linux_arm64"
+      platforms: [linux/arm64]
+    - pattern: "yq_darwin_amd64"
+      platforms: [macos/x64]
+    - pattern: "yq_darwin_arm64"
+      platforms: [macos/arm64]
+tag_prefix: "yq-"
+keep_versions: 0
+license: MIT
+source_url: https://github.com/mikefarah/yq

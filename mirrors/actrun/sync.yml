@@ -1,0 +1,23 @@
+# TODO: actionforge/actrun-cli has no releases yet. verify asset pattern when available
+tool: actrun
+upstream:
+  type: github_release
+  owner: actionforge
+  repo: actrun-cli
+  tag_prefix: "v"
+  include_prerelease: false
+  assets:
+    - pattern: "actrun-windows-amd64.zip"
+      platforms: [windows/x64]
+    - pattern: "actrun-linux-amd64.tar.gz"
+      platforms: [linux/x64]
+    - pattern: "actrun-linux-arm64.tar.gz"
+      platforms: [linux/arm64]
+    - pattern: "actrun-darwin-amd64.tar.gz"
+      platforms: [macos/x64]
+    - pattern: "actrun-darwin-arm64.tar.gz"
+      platforms: [macos/arm64]
+tag_prefix: "actrun-"
+keep_versions: 0
+license: MIT
+source_url: https://github.com/actionforge/actrun-cli

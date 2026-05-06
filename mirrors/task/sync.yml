@@ -1,0 +1,22 @@
+tool: task
+upstream:
+  type: github_release
+  owner: go-task
+  repo: task
+  tag_prefix: "v"
+  include_prerelease: false
+  assets:
+    - pattern: "task_windows_amd64.zip"
+      platforms: [windows/x64]
+    - pattern: "task_linux_amd64.tar.gz"
+      platforms: [linux/x64]
+    - pattern: "task_linux_arm64.tar.gz"
+      platforms: [linux/arm64]
+    - pattern: "task_darwin_amd64.tar.gz"
+      platforms: [macos/x64]
+    - pattern: "task_darwin_arm64.tar.gz"
+      platforms: [macos/arm64]
+tag_prefix: "task-"
+keep_versions: 0
+license: MIT
+source_url: https://github.com/go-task/task

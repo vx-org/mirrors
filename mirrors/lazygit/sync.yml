@@ -1,0 +1,22 @@
+tool: lazygit
+upstream:
+  type: github_release
+  owner: jesseduffield
+  repo: lazygit
+  tag_prefix: "v"
+  include_prerelease: false
+  assets:
+    - pattern: "lazygit_{version}_windows_x86_64.zip"
+      platforms: [windows/x64]
+    - pattern: "lazygit_{version}_linux_x86_64.tar.gz"
+      platforms: [linux/x64]
+    - pattern: "lazygit_{version}_linux_arm64.tar.gz"
+      platforms: [linux/arm64]
+    - pattern: "lazygit_{version}_darwin_x86_64.tar.gz"
+      platforms: [macos/x64]
+    - pattern: "lazygit_{version}_darwin_arm64.tar.gz"
+      platforms: [macos/arm64]
+tag_prefix: "lazygit-"
+keep_versions: 0
+license: MIT
+source_url: https://github.com/jesseduffield/lazygit

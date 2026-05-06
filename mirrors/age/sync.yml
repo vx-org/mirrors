@@ -1,0 +1,22 @@
+tool: age
+upstream:
+  type: github_release
+  owner: FiloSottile
+  repo: age
+  tag_prefix: "v"
+  include_prerelease: false
+  assets:
+    - pattern: "age-v{version}-windows-amd64.zip"
+      platforms: [windows/x64]
+    - pattern: "age-v{version}-linux-amd64.tar.gz"
+      platforms: [linux/x64]
+    - pattern: "age-v{version}-linux-arm64.tar.gz"
+      platforms: [linux/arm64]
+    - pattern: "age-v{version}-darwin-amd64.tar.gz"
+      platforms: [macos/x64]
+    - pattern: "age-v{version}-darwin-arm64.tar.gz"
+      platforms: [macos/arm64]
+tag_prefix: "age-"
+keep_versions: 0
+license: MIT
+source_url: https://github.com/FiloSottile/age

@@ -1,0 +1,14 @@
+tool: winget
+upstream:
+  type: github_release
+  owner: microsoft
+  repo: winget-cli
+  tag_prefix: "v"
+  include_prerelease: false
+  assets:
+    - pattern: "Microsoft.DesktopAppInstaller_8wekyb3d8bbwe.msixbundle"
+      platforms: [windows/x64]
+tag_prefix: "winget-"
+keep_versions: 0
+license: MIT
+source_url: https://github.com/microsoft/winget-cli

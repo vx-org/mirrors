@@ -1,0 +1,22 @@
+tool: pnpm
+upstream:
+  type: github_release
+  owner: pnpm
+  repo: pnpm
+  tag_prefix: "v"
+  include_prerelease: false
+  assets:
+    - pattern: "pnpm-win32-x64.zip"
+      platforms: [windows/x64]
+    - pattern: "pnpm-linux-x64.tar.gz"
+      platforms: [linux/x64]
+    - pattern: "pnpm-linux-arm64.tar.gz"
+      platforms: [linux/arm64]
+    - pattern: "pnpm-darwin-x64.tar.gz"
+      platforms: [macos/x64]
+    - pattern: "pnpm-darwin-arm64.tar.gz"
+      platforms: [macos/arm64]
+tag_prefix: "pnpm-"
+keep_versions: 0
+license: MIT
+source_url: https://github.com/pnpm/pnpm

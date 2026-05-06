@@ -1,0 +1,26 @@
+# Note: helm GitHub releases only contain .asc signature files.
+# Actual tarballs are distributed via https://get.helm.sh
+# Pattern follows the standard naming convention used at get.helm.sh
+# TODO: verify if sync system can handle get.helm.sh source instead of GitHub releases
+tool: helm
+upstream:
+  type: github_release
+  owner: helm
+  repo: helm
+  tag_prefix: "v"
+  include_prerelease: false
+  assets:
+    - pattern: "helm-v{version}-windows-amd64.zip"
+      platforms: [windows/x64]
+    - pattern: "helm-v{version}-linux-amd64.tar.gz"
+      platforms: [linux/x64]
+    - pattern: "helm-v{version}-linux-arm64.tar.gz"
+      platforms: [linux/arm64]
+    - pattern: "helm-v{version}-darwin-amd64.tar.gz"
+      platforms: [macos/x64]
+    - pattern: "helm-v{version}-darwin-arm64.tar.gz"
+      platforms: [macos/arm64]
+tag_prefix: "helm-"
+keep_versions: 0
+license: Apache-2.0
+source_url: https://github.com/helm/helm

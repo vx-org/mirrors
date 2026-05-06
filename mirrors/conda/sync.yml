@@ -1,0 +1,22 @@
+tool: conda
+upstream:
+  type: github_release
+  owner: conda-forge
+  repo: miniforge
+  tag_prefix: ""
+  include_prerelease: false
+  assets:
+    - pattern: "Miniforge3-{version}-Windows-x86_64.exe"
+      platforms: [windows/x64]
+    - pattern: "Miniforge3-{version}-Linux-x86_64.sh"
+      platforms: [linux/x64]
+    - pattern: "Miniforge3-{version}-Linux-aarch64.sh"
+      platforms: [linux/arm64]
+    - pattern: "Miniforge3-{version}-MacOSX-x86_64.sh"
+      platforms: [macos/x64]
+    - pattern: "Miniforge3-{version}-MacOSX-arm64.sh"
+      platforms: [macos/arm64]
+tag_prefix: "conda-"
+keep_versions: 0
+license: BSD-3-Clause
+source_url: https://github.com/conda-forge/miniforge

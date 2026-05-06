@@ -1,0 +1,14 @@
+tool: spack
+upstream:
+  type: github_release
+  owner: spack
+  repo: spack
+  tag_prefix: "v"
+  include_prerelease: false
+  assets:
+    - pattern: "spack-{version}.tar.gz"
+      platforms: [linux/x64, linux/arm64, macos/x64, macos/arm64]
+tag_prefix: "spack-"
+keep_versions: 0
+license: Apache-2.0
+source_url: https://github.com/spack/spack
