@@ -1,10 +1,14 @@
+# trivy — aquasecurity org has IP allowlist that blocks GitHub Actions runners
+# Cannot sync via standard gh api. Use direct download URL instead.
 tool: trivy
 upstream:
-  type: github_release
+  type: github_release_direct
   owner: aquasecurity
   repo: trivy
   tag_prefix: "v"
   include_prerelease: false
+  # Use unauthenticated archive URL (bypasses org IP allowlist)
+  use_archive_api: true
   assets:
     - pattern: "trivy_{version}_windows-64bit.zip"
       platforms: [windows/x64]

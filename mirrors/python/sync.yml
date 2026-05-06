@@ -3,33 +3,42 @@
 # Source: astral-sh/python-build-standalone
 # Official: https://www.python.org
 #
-# Each release contains ALL Python versions (3.9, 3.10, 3.11, 3.12, 3.13 etc.)
-# Asset format: cpython-{pyver}+{build_date}-{triple}-install_only_stripped.tar.gz
+# Uses github_release_direct to bypass API rate limits on large repos.
+# Each release tag (e.g. 20260504) contains assets for all Python versions.
+# We construct download URLs directly without fetching the releases API.
 #
-# We use multi_version mode to extract each Python version as its own mirror release.
+# Asset format: cpython-{pyver}+{build_tag}-{triple}-install_only_stripped.tar.gz
 
 tool: python
 upstream:
-  type: multi_version
+  type: python_standalone
   owner: astral-sh
   repo: python-build-standalone
-  tag_prefix: ""
-  include_prerelease: false
-  # Regex with named group "version" to extract per-version releases
-  asset_patterns:
-    - regex: "cpython-(?P<version>[0-9]+\\.[0-9]+\\.[0-9]+)\\+[0-9]+-x86_64-pc-windows-msvc-install_only_stripped\\.tar\\.gz"
-      rename: "python-{version}-windows-x64.tar.gz"
-    - regex: "cpython-(?P<version>[0-9]+\\.[0-9]+\\.[0-9]+)\\+[0-9]+-x86_64-unknown-linux-gnu-install_only_stripped\\.tar\\.gz"
-      rename: "python-{version}-linux-x64.tar.gz"
-    - regex: "cpython-(?P<version>[0-9]+\\.[0-9]+\\.[0-9]+)\\+[0-9]+-aarch64-unknown-linux-gnu-install_only_stripped\\.tar\\.gz"
-      rename: "python-{version}-linux-arm64.tar.gz"
-    - regex: "cpython-(?P<version>[0-9]+\\.[0-9]+\\.[0-9]+)\\+[0-9]+-x86_64-apple-darwin-install_only_stripped\\.tar\\.gz"
-      rename: "python-{version}-macos-x64.tar.gz"
-    - regex: "cpython-(?P<version>[0-9]+\\.[0-9]+\\.[0-9]+)\\+[0-9]+-aarch64-apple-darwin-install_only_stripped\\.tar\\.gz"
-      rename: "python-{version}-macos-arm64.tar.gz"
+  # Python versions to mirror
+  python_versions: ["3.9", "3.10", "3.11", "3.12", "3.13"]
+  platforms:
+    - triple: "x86_64-pc-windows-msvc"
+      os: windows
+      arch: x64
+      ext: ".tar.gz"
+    - triple: "x86_64-unknown-linux-gnu"
+      os: linux
+      arch: x64
+      ext: ".tar.gz"
+    - triple: "aarch64-unknown-linux-gnu"
+      os: linux
+      arch: arm64
+      ext: ".tar.gz"
+    - triple: "x86_64-apple-darwin"
+      os: macos
+      arch: x64
+      ext: ".tar.gz"
+    - triple: "aarch64-apple-darwin"
+      os: macos
+      arch: arm64
+      ext: ".tar.gz"
 
 tag_prefix: "python-"
 keep_versions: 0
 license: PSF-2.0
 source_url: https://www.python.org
-upstream_source: https://github.com/astral-sh/python-build-standalone
