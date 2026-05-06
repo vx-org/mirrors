@@ -96,29 +96,50 @@ except ImportError:
 
 
 def gh(args: list[str], capture: bool = True) -> str:
-    """Run a gh CLI command. Auto-retries on rate limit (HTTP 403/429)."""
+    """Run a gh CLI command. Auto-retries on rate limit (HTTP 403/429) and transient errors."""
     import time
     cmd = ["gh"] + args
-    for attempt in range(5):
+    for attempt in range(6):
         if capture:
             r = subprocess.run(cmd, capture_output=True, text=True)
             if r.returncode == 0:
                 return r.stdout.strip()
-            # Rate limit: back off and retry
-            if "rate limit" in r.stderr.lower() or "429" in r.stderr or "403" in r.stderr:
-                wait = 30 * (2 ** attempt)  # 30s, 60s, 120s, 240s, 480s
-                print(f"    [rate-limit] Waiting {wait}s before retry {attempt+1}/5 ...")
+            stderr = r.stderr.lower()
+            # Rate limit or transient server error: back off and retry
+            if "rate limit" in stderr or "429" in r.stderr or \
+               ("403" in r.stderr and "rate" in stderr) or \
+               "504" in r.stderr or "502" in r.stderr or "503" in r.stderr or \
+               "couldn't respond" in stderr or "try resubmitting" in stderr:
+                wait = min(60 + 30 * attempt, 120)  # 60s, 90s, 120s, 120s, 120s, 120s
+                print(f"    [retry {attempt+1}/6] Waiting {wait}s ({r.stderr.strip()[:80]}) ...")
                 time.sleep(wait)
                 continue
             raise RuntimeError(f"gh {' '.join(args)} failed:\n{r.stderr}")
         else:
             subprocess.run(cmd, check=True)
             return ""
-    raise RuntimeError(f"gh {' '.join(args)} failed after 5 retries (rate limit)")
+    raise RuntimeError(f"gh {' '.join(args)} failed after 6 retries")
 
 
 def gh_json(args: list[str]) -> object:
     return json.loads(gh(args))
+
+
+def fetch_url_json(url: str) -> object:
+    """Fetch a URL and parse JSON. Uses curl for robust redirect/SSL handling."""
+    import time
+    for attempt in range(4):
+        r = subprocess.run(
+            ["curl", "-fsSL", "--retry", "2", "--max-time", "60",
+             "-H", "User-Agent: vx-mirrors/1.0", url],
+            capture_output=True, text=True
+        )
+        if r.returncode == 0:
+            return json.loads(r.stdout)
+        wait = 30 * (attempt + 1)
+        print(f"    [fetch_url retry {attempt+1}/4] {url} failed, waiting {wait}s ...")
+        time.sleep(wait)
+    raise RuntimeError(f"fetch_url_json failed after 4 retries: {url}")
 
 
 # ---------------------------------------------------------------------------
@@ -468,8 +489,7 @@ def sync_nodejs_org(cfg: dict, mirror_repo: str, dry_run: bool, force: bool) -> 
     print(f"  Dry run : {dry_run}  Force: {force}")
     print("=" * 64)
 
-    with urllib.request.urlopen("https://nodejs.org/dist/index.json", timeout=30) as resp:
-        releases = json.loads(resp.read())
+    releases = fetch_url_json("https://nodejs.org/dist/index.json")
 
     versions = [r["version"].lstrip("v") for r in releases]
     print(f"  Found {len(versions)} versions on nodejs.org")
@@ -545,10 +565,7 @@ def sync_go_dev(cfg: dict, mirror_repo: str, dry_run: bool, force: bool) -> int:
     print(f"  Dry run : {dry_run}  Force: {force}")
     print("=" * 64)
 
-    with urllib.request.urlopen(
-        "https://go.dev/dl/?mode=json&include=all", timeout=30
-    ) as resp:
-        releases = json.loads(resp.read())
+    releases = fetch_url_json("https://go.dev/dl/?mode=json&include=all")
 
     versions = [r["version"].lstrip("go") for r in releases if r.get("stable")]
     print(f"  Found {len(versions)} stable versions on go.dev")
@@ -822,10 +839,7 @@ def sync_adoptium(cfg: dict, mirror_repo: str, dry_run: bool, force: bool) -> in
     print(f"  Dry run : {dry_run}  Force: {force}")
     print("=" * 64)
 
-    with urllib.request.urlopen(
-        "https://api.adoptium.net/v3/info/available_releases", timeout=30
-    ) as resp:
-        release_info = json.loads(resp.read())
+    release_info = fetch_url_json("https://api.adoptium.net/v3/info/available_releases")
 
     lts_versions: list[int] = release_info.get("available_lts_releases", [])
     print(f"  LTS versions: {lts_versions}")
@@ -906,11 +920,7 @@ def sync_dotnet_microsoft(cfg: dict, mirror_repo: str, dry_run: bool, force: boo
     print(f"  Dry run : {dry_run}  Force: {force}")
     print("=" * 64)
 
-    with urllib.request.urlopen(
-        "https://dotnetcli.blob.core.windows.net/dotnet/release-metadata/releases-index.json",
-        timeout=30,
-    ) as resp:
-        index = json.loads(resp.read())
+    index = fetch_url_json("https://dotnetcli.blob.core.windows.net/dotnet/release-metadata/releases-index.json")
 
     lts_channels = [
         ch for ch in index.get("releases-index", [])
