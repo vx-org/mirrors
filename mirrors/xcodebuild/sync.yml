@@ -1,15 +1,11 @@
-# TODO: xcodebuild is macOS-only Apple developer tool, no GitHub release assets
+# xcodebuild 是 Apple Xcode 内置工具，随 Xcode 安装，无独立 releases
+# 仅在 macOS 上通过 xcode-select 安装
 tool: xcodebuild
 upstream:
-  type: github_release
-  owner: apple
-  repo: xcode
-  tag_prefix: ""
-  include_prerelease: false
-  assets:
-    - pattern: "Xcode_{version}.xip"
-      platforms: [macos/x64, macos/arm64]
+  type: skip
+  reason: "xcodebuild is bundled with Apple Xcode, no standalone releases"
+  source_url: https://developer.apple.com/xcode/
 tag_prefix: "xcodebuild-"
 keep_versions: 0
-license: MIT
-source_url: https://github.com/apple/xcode
+license: Proprietary
+source_url: https://developer.apple.com/xcode/

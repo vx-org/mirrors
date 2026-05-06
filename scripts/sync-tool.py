@@ -112,18 +112,62 @@ def gh_json(args: list[str]) -> object:
     return json.loads(gh(args))
 
 
+# ---------------------------------------------------------------------------
+# Fast release existence check via pre-fetched tag set
+# ---------------------------------------------------------------------------
+
+_MIRROR_TAGS_CACHE: set[str] | None = None
+
+def _load_mirror_tags(repo: str) -> set[str]:
+    """Fetch all existing release tags from the mirror repo in one API call."""
+    global _MIRROR_TAGS_CACHE
+    if _MIRROR_TAGS_CACHE is not None:
+        return _MIRROR_TAGS_CACHE
+    tags: set[str] = set()
+    page = 1
+    print(f"  [cache] Loading existing mirror releases from {repo} ...")
+    while True:
+        data = gh_json(["api",
+            f"repos/{repo}/releases?per_page=100&page={page}"])
+        assert isinstance(data, list)
+        if not data:
+            break
+        for r in data:
+            tags.add(r["tag_name"])
+        page += 1
+        if len(data) < 100:
+            break
+    _MIRROR_TAGS_CACHE = tags
+    print(f"  [cache] {len(tags)} existing releases cached — skipping will be instant")
+    return tags
+
+
 def release_exists(repo: str, tag: str) -> bool:
-    r = subprocess.run(
-        ["gh", "release", "view", tag, "--repo", repo],
-        capture_output=True, text=True
-    )
-    return r.returncode == 0
+    """Fast O(1) check using pre-fetched tag cache."""
+    return tag in _load_mirror_tags(repo)
+
+
+def mark_release_created(tag: str) -> None:
+    """Update the in-memory cache after a new release is created."""
+    if _MIRROR_TAGS_CACHE is not None:
+        _MIRROR_TAGS_CACHE.add(tag)
 
 
 def download_file(url: str, dest: Path) -> bool:
+    """Download url to dest, following redirects. Uses curl if available (more robust)."""
     for attempt in range(3):
         try:
-            with urllib.request.urlopen(url, timeout=120) as resp:
+            # Use curl for better redirect handling and progress
+            r = subprocess.run(
+                ["curl", "-fsSL", "--retry", "2", "--max-time", "300",
+                 "-o", str(dest), url],
+                capture_output=True, text=True
+            )
+            if r.returncode == 0 and dest.exists() and dest.stat().st_size > 0:
+                return True
+            # Fallback to urllib
+            req = urllib.request.Request(url, headers={"User-Agent": "vx-mirrors/1.0"})
+            with urllib.request.urlopen(req, timeout=300) as resp:
                 dest.write_bytes(resp.read())
             return True
         except Exception as e:
@@ -137,6 +181,125 @@ def asset_matches(name: str, pattern: str, version: str) -> bool:
     regex = regex.replace("{semver}", r"[0-9]+\.[0-9]+(\.[0-9]+)?")
     regex = regex.replace("{version}", re.escape(version))
     return bool(re.fullmatch(regex, name))
+
+
+def sync_multi_version(cfg: dict, mirror_repo: str, dry_run: bool, force: bool) -> int:
+    """
+    Generic multi-version handler: a SINGLE upstream release contains assets for
+    MULTIPLE tool versions. Extract each version via named regex group 'version'.
+
+    Used for: python (astral-sh/python-build-standalone), etc.
+    """
+    tool          = cfg["tool"]
+    upstream      = cfg["upstream"]
+    up_owner      = upstream["owner"]
+    up_repo       = upstream["repo"]
+    up_tag_prefix = upstream.get("tag_prefix", "")
+    inc_pre       = upstream.get("include_prerelease", False)
+    asset_patterns = upstream.get("asset_patterns", [])
+    mirror_prefix = cfg["tag_prefix"]
+
+    print("=" * 64)
+    print(f"  Tool    : {tool}  (multi_version mode)")
+    print(f"  Upstream: {up_owner}/{up_repo}")
+    print(f"  Mirror  : {mirror_repo}")
+    print(f"  Dry run : {dry_run}  Force: {force}")
+    print("=" * 64)
+
+    # Fetch latest releases (paginated)
+    all_releases: list[dict] = []
+    page = 1
+    while True:
+        data = gh_json(["api",
+            f"repos/{up_owner}/{up_repo}/releases?per_page=100&page={page}"])
+        assert isinstance(data, list)
+        if not data:
+            break
+        all_releases.extend(data)
+        print(f"  Page {page}: {len(data)} releases")
+        page += 1
+        if len(data) < 100:
+            break
+
+    releases = [r for r in all_releases if inc_pre or not r["prerelease"]]
+    print(f"  Total releases to scan: {len(releases)}")
+
+    # Collect all versions seen across all releases (avoid duplicate mirror releases)
+    all_versions: dict[str, list[tuple[str, str, str]]] = {}  # version → [(aname, url, rename)]
+
+    for rel in releases:
+        up_tag = rel["tag_name"]
+        assets_map = {a["name"]: a["browser_download_url"] for a in rel.get("assets", [])}
+
+        for aname, aurl in assets_map.items():
+            for pat_def in asset_patterns:
+                regex   = pat_def["regex"]
+                rename_tpl = pat_def.get("rename", "")
+                m = re.fullmatch(regex, aname)
+                if m:
+                    ver = m.group("version")
+                    rename = rename_tpl.replace("{version}", ver) if rename_tpl else aname
+                    # Only keep the first (newest) occurrence per version+platform
+                    key_name = rename or aname
+                    entries = all_versions.setdefault(ver, [])
+                    if not any(e[2] == key_name for e in entries):
+                        entries.append((aname, aurl, key_name))
+                    break
+
+    versions = sorted(all_versions.keys(),
+                      key=lambda v: tuple(int(x) for x in v.split(".") if x.isdigit()),
+                      reverse=True)
+    print(f"  Detected {len(versions)} distinct versions")
+
+    synced = skipped = failed = 0
+
+    for version in versions:
+        mirror_tag = f"{mirror_prefix}{version}"
+        print(f"\n--- {tool} {version}  (→ {mirror_tag}) ---")
+
+        if not force and release_exists(mirror_repo, mirror_tag):
+            print("    [SKIP] Already mirrored.")
+            skipped += 1
+            continue
+
+        tmp = Path(tempfile.mkdtemp())
+        try:
+            uploaded: list[Path] = []
+            for aname, aurl, dest_name in all_versions[version]:
+                dest = tmp / dest_name
+                print(f"    DL  {aname} → {dest_name}")
+                if dry_run:
+                    dest.touch()
+                elif not download_file(aurl, dest):
+                    print(f"    [WARN] Download failed: {aname}")
+                    continue
+                uploaded.append(dest)
+
+            if not uploaded:
+                print(f"    [WARN] No assets — skipping {mirror_tag}.")
+                skipped += 1
+                continue
+
+            notes = (
+                f"## {tool} {version}\n\n"
+                f"**Source:** https://github.com/{up_owner}/{up_repo}\n\n"
+                f"---\n*Permanent archive by "
+                f"[vx-org/mirrors](https://github.com/vx-org/mirrors)*"
+            )
+            result = _create_mirror_release(tool, version, mirror_tag, mirror_repo,
+                                            uploaded, notes, dry_run)
+            if result in ("ok", "dry"):
+                synced += 1
+            else:
+                failed += 1
+        finally:
+            shutil.rmtree(tmp, ignore_errors=True)
+
+    print()
+    print("=" * 64)
+    print(f"  {tool} done — synced={synced}  skipped={skipped}  failed={failed}")
+    print("=" * 64)
+    return 1 if failed > 0 else 0
 
 
 def sync_btbn_ffmpeg(cfg: dict, mirror_repo: str, dry_run: bool, force: bool) -> int:
@@ -270,6 +433,7 @@ def _create_mirror_release(
     r = subprocess.run(cmd, capture_output=True, text=True)
     if r.returncode == 0:
         print(f"    [OK] {mirror_tag} created.")
+        mark_release_created(mirror_tag)
         return "ok"
     else:
         print(f"    [FAIL] {r.stderr.strip()}")
@@ -826,8 +990,14 @@ def main() -> int:
 
     # Dispatch to special handler if needed (before reading owner/repo)
     up_type = upstream.get("type", "github_release")
+    if up_type == "skip":
+        reason = upstream.get("reason", "no reason given")
+        print(f"[SKIP] {tool}: {reason}")
+        return 0
     if up_type == "btbn_ffmpeg":
         return sync_btbn_ffmpeg(cfg, MIRROR_REPO, DRY_RUN, FORCE)
+    if up_type == "multi_version":
+        return sync_multi_version(cfg, MIRROR_REPO, DRY_RUN, FORCE)
     if up_type == "nodejs_org":
         return sync_nodejs_org(cfg, MIRROR_REPO, DRY_RUN, FORCE)
     if up_type == "go_dev":

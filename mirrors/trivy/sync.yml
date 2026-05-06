@@ -6,7 +6,7 @@ upstream:
   tag_prefix: "v"
   include_prerelease: false
   assets:
-    - pattern: "trivy_{version}_Windows-64bit.zip"
+    - pattern: "trivy_{version}_windows-64bit.zip"
       platforms: [windows/x64]
     - pattern: "trivy_{version}_Linux-64bit.tar.gz"
       platforms: [linux/x64]
