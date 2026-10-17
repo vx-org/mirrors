@@ -23,6 +23,7 @@ import shutil
 import subprocess
 import sys
 import tempfile
+import urllib.parse
 import urllib.request
 from pathlib import Path
 
@@ -95,6 +96,14 @@ except ImportError:
         return result
 
 
+class GhCommandError(RuntimeError):
+    """A failed gh command, retaining stdout for included HTTP responses."""
+
+    def __init__(self, args: list[str], result: subprocess.CompletedProcess):
+        super().__init__(f"gh {' '.join(args)} failed:\n{result.stderr}")
+        self.stdout = result.stdout
+
+
 def gh(args: list[str], capture: bool = True) -> str:
     """Run a gh CLI command. Auto-retries on rate limit (HTTP 403/429) and transient errors."""
     import time
@@ -114,7 +123,7 @@ def gh(args: list[str], capture: bool = True) -> str:
                 print(f"    [retry {attempt+1}/6] Waiting {wait}s ({r.stderr.strip()[:80]}) ...")
                 time.sleep(wait)
                 continue
-            raise RuntimeError(f"gh {' '.join(args)} failed:\n{r.stderr}")
+            raise GhCommandError(args, r)
         else:
             subprocess.run(cmd, check=True)
             return ""
@@ -143,44 +152,81 @@ def fetch_url_json(url: str) -> object:
 
 
 # ---------------------------------------------------------------------------
-# Fast release existence check via pre-fetched tag set
+# Bounded release cache with exact-tag fallback
 # ---------------------------------------------------------------------------
 
-_MIRROR_TAGS_CACHE: set[str] | None = None
+_MIRROR_TAGS_CACHE: dict[str, set[str]] = {}
+_MIRROR_MISSING_TAGS_CACHE: dict[str, set[str]] = {}
+
 
 def _load_mirror_tags(repo: str) -> set[str]:
-    """Fetch all existing release tags from the mirror repo in one API call."""
-    global _MIRROR_TAGS_CACHE
-    if _MIRROR_TAGS_CACHE is not None:
-        return _MIRROR_TAGS_CACHE
+    """Cache one page of recent releases, never the entire archive.
+
+    GitHub caps release pagination at 10,000 results. Every sync job has its
+    own process, so even 100 pages per job would waste requests. Older tags
+    are checked individually by release_exists and cached for this process.
+    """
+    if repo in _MIRROR_TAGS_CACHE:
+        return _MIRROR_TAGS_CACHE[repo]
     tags: set[str] = set()
-    page = 1
-    print(f"  [cache] Loading existing mirror releases from {repo} ...")
-    while True:
-        data = gh_json(["api",
-            f"repos/{repo}/releases?per_page=100&page={page}"])
-        assert isinstance(data, list)
-        if not data:
-            break
-        for r in data:
-            tags.add(r["tag_name"])
-        page += 1
-        if len(data) < 100:
-            break
-    _MIRROR_TAGS_CACHE = tags
-    print(f"  [cache] {len(tags)} existing releases cached — skipping will be instant")
+    print(f"  [cache] Loading recent mirror releases from {repo} ...")
+    data = gh_json(["api", f"repos/{repo}/releases?per_page=100&page=1"])
+    if not isinstance(data, list):
+        raise RuntimeError(f"Invalid release list from {repo}")
+    for release in data:
+        if not isinstance(release, dict) or not isinstance(release.get("tag_name"), str):
+            raise RuntimeError(f"Invalid release in list from {repo}")
+        tags.add(release["tag_name"])
+    _MIRROR_TAGS_CACHE[repo] = tags
+    print(f"  [cache] {len(tags)} recent releases cached; other tags checked individually")
     return tags
 
 
+def _parse_gh_api_response(response: str) -> tuple[int, object]:
+    """Parse gh api --include output without guessing status from stderr."""
+    headers, separator, body = response.replace("\r\n", "\n").partition("\n\n")
+    status = re.fullmatch(r"HTTP/\S+ (\d{3})(?: .*)?", headers.split("\n", 1)[0])
+    if not separator or status is None:
+        raise RuntimeError("Invalid HTTP response from gh api")
+    return int(status.group(1)), json.loads(body)
+
+
 def release_exists(repo: str, tag: str) -> bool:
-    """Fast O(1) check using pre-fetched tag cache."""
-    return tag in _load_mirror_tags(repo)
+    """Check cached tags, then the exact release; only HTTP 404 means absent."""
+    tags = _load_mirror_tags(repo)
+    if tag in tags:
+        return True
+    missing = _MIRROR_MISSING_TAGS_CACHE.setdefault(repo, set())
+    if tag in missing:
+        return False
+
+    encoded_tag = urllib.parse.quote(tag, safe="")
+    try:
+        response = gh(["api", "--include", f"repos/{repo}/releases/tags/{encoded_tag}"])
+    except GhCommandError as error:
+        # gh exits nonzero for HTTP errors. Never interpret a generic CLI,
+        # auth, rate-limit, server, or malformed-response failure as absence.
+        try:
+            status, data = _parse_gh_api_response(error.stdout)
+        except (RuntimeError, ValueError):
+            raise error
+        if status != 404 or not isinstance(data, dict) or not isinstance(data.get("message"), str):
+            raise
+        missing.add(tag)
+        return False
+
+    status, data = _parse_gh_api_response(response)
+    if status != 200 or not isinstance(data, dict) or data.get("tag_name") != tag:
+        raise RuntimeError(f"Invalid release response for {repo} tag {tag!r}")
+    tags.add(tag)
+    return True
 
 
-def mark_release_created(tag: str) -> None:
-    """Update the in-memory cache after a new release is created."""
-    if _MIRROR_TAGS_CACHE is not None:
-        _MIRROR_TAGS_CACHE.add(tag)
+def mark_release_created(tag: str, repo: str = "vx-org/mirrors") -> None:
+    """Update this repo's cache after creation, including a previous 404."""
+    if repo in _MIRROR_TAGS_CACHE:
+        _MIRROR_TAGS_CACHE[repo].add(tag)
+    _MIRROR_MISSING_TAGS_CACHE.get(repo, set()).discard(tag)
 
 
 def download_file(url: str, dest: Path) -> bool:
@@ -768,6 +814,7 @@ def sync_btbn_ffmpeg(cfg: dict, mirror_repo: str, dry_run: bool, force: bool) ->
             r = subprocess.run(cmd, capture_output=True, text=True)
             if r.returncode == 0:
                 print(f"    [OK] {mirror_tag} created.")
+                mark_release_created(mirror_tag, mirror_repo)
                 synced += 1
             else:
                 print(f"    [FAIL] {r.stderr.strip()}")
@@ -804,7 +851,7 @@ def _create_mirror_release(
     r = subprocess.run(cmd, capture_output=True, text=True)
     if r.returncode == 0:
         print(f"    [OK] {mirror_tag} created.")
-        mark_release_created(mirror_tag)
+        mark_release_created(mirror_tag, mirror_repo)
         return "ok"
     else:
         print(f"    [FAIL] {r.stderr.strip()}")
@@ -1591,6 +1638,7 @@ def main() -> int:
             r = subprocess.run(cmd, capture_output=True, text=True)
             if r.returncode == 0:
                 print(f"    [OK] {mirror_tag} created.")
+                mark_release_created(mirror_tag, MIRROR_REPO)
                 synced += 1
             else:
                 print(f"    [FAIL] {r.stderr.strip()}")
