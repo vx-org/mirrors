@@ -191,8 +191,42 @@ def _parse_gh_api_response(response: str) -> tuple[int, object]:
     return int(status.group(1)), json.loads(body)
 
 
+def _release_exists_graphql(repo: str, tag: str) -> bool:
+    """Find drafts by pending tag, as gh release view does after REST lookup.
+
+    REST's exact-tag endpoint only finds published releases. Interrupted
+    asset uploads can leave drafts, so a REST 404 alone is not sufficient.
+    """
+    owner, name = repo.split("/", 1)
+    query = """
+        query($owner: String!, $name: String!, $tagName: String!) {
+            repository(owner: $owner, name: $name) {
+                release(tagName: $tagName) { tagName isDraft }
+            }
+        }
+    """
+    data = gh_json([
+        "api", "graphql", "-f", f"query={query}",
+        "-f", f"owner={owner}", "-f", f"name={name}", "-f", f"tagName={tag}",
+    ])
+    if not isinstance(data, dict):
+        raise RuntimeError(f"Invalid GraphQL response for {repo} tag {tag!r}")
+    if data.get("errors") not in (None, []):
+        raise RuntimeError(f"GraphQL release lookup failed for {repo} tag {tag!r}: {data['errors']!r}")
+    result = data.get("data")
+    repository = result.get("repository") if isinstance(result, dict) else None
+    if not isinstance(repository, dict) or "release" not in repository:
+        raise RuntimeError(f"Invalid GraphQL repository response for {repo}")
+    release = repository["release"]
+    if release is None:
+        return False
+    if not isinstance(release, dict) or release.get("tagName") != tag or not isinstance(release.get("isDraft"), bool):
+        raise RuntimeError(f"Invalid GraphQL release response for {repo} tag {tag!r}")
+    return True
+
+
 def release_exists(repo: str, tag: str) -> bool:
-    """Check cached tags, then the exact release; only HTTP 404 means absent."""
+    """Check cached tags, then published and draft releases by exact tag."""
     tags = _load_mirror_tags(repo)
     if tag in tags:
         return True
@@ -212,6 +246,9 @@ def release_exists(repo: str, tag: str) -> bool:
             raise error
         if status != 404 or not isinstance(data, dict) or not isinstance(data.get("message"), str):
             raise
+        if _release_exists_graphql(repo, tag):
+            tags.add(tag)
+            return True
         missing.add(tag)
         return False
 
