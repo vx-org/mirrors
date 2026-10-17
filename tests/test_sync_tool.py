@@ -21,6 +21,10 @@ def json_result(data):
     return subprocess.CompletedProcess([], 0, json.dumps(data), "")
 
 
+def graphql_result(release=None):
+    return json_result({"data": {"repository": {"release": release}}})
+
+
 def http_result(status, data, *, newline="\n"):
     output = newline.join([
         f"HTTP/2.0 {status} Response",
@@ -74,10 +78,117 @@ class ReleaseLookupTests(unittest.TestCase):
         self.assertEqual(self.run.call_count, 360)
 
     def test_exact_404_is_cached_even_after_short_list(self):
-        self.run.side_effect = [json_result([]), http_result(404, {"message": "Not Found"})]
+        self.run.side_effect = [json_result([]), http_result(404, {"message": "Not Found"}), graphql_result()]
         self.assertFalse(sync_tool.release_exists(self.REPO, "new-tag"))
         self.assertFalse(sync_tool.release_exists(self.REPO, "new-tag"))
-        self.assertEqual(self.run.call_count, 2)
+        self.assertEqual(self.run.call_count, 3)
+
+    def test_old_draft_outside_prefetch_is_cached_as_present(self):
+        self.run.side_effect = [
+            json_result([{"tag_name": f"recent-{n}"} for n in range(100)]),
+            http_result(404, {"message": "Not Found"}),
+            graphql_result({"tagName": "old-draft", "isDraft": True}),
+        ]
+        self.assertTrue(sync_tool.release_exists(self.REPO, "old-draft"))
+        self.assertTrue(sync_tool.release_exists(self.REPO, "old-draft"))
+        self.assertNotIn("old-draft", sync_tool._MIRROR_MISSING_TAGS_CACHE[self.REPO])
+        self.assertEqual(self.run.call_count, 3)
+
+    def test_graphql_also_accepts_release_published_after_rest_404(self):
+        self.run.side_effect = [
+            json_result([]), http_result(404, {"message": "Not Found"}),
+            graphql_result({"tagName": "new", "isDraft": False}),
+        ]
+        self.assertTrue(sync_tool.release_exists(self.REPO, "new"))
+
+    def test_graphql_uses_literal_string_variables(self):
+        tag = "@tag/{repo}"
+        self.run.side_effect = [
+            json_result([]), http_result(404, {"message": "Not Found"}),
+            graphql_result({"tagName": tag, "isDraft": True}),
+        ]
+        self.assertTrue(sync_tool.release_exists(self.REPO, tag))
+        command = self.run.call_args.args[0]
+        self.assertEqual(command[:3], ["gh", "api", "graphql"])
+        self.assertEqual(command[-6:], ["-f", "owner=vx-org", "-f", "name=mirrors", "-f", f"tagName={tag}"])
+        self.assertNotIn("-F", command)  # no type conversion, placeholders, or @file reads
+
+    def test_359_true_misses_cost_one_prefetch_plus_two_each(self):
+        def respond(command, **kwargs):
+            if command[2] == "graphql":
+                return graphql_result()
+            if command[-1].endswith("releases?per_page=100&page=1"):
+                return json_result([])
+            return http_result(404, {"message": "Not Found"})
+
+        self.run.side_effect = respond
+        for _ in range(2):
+            for version in range(359):
+                self.assertFalse(sync_tool.release_exists(self.REPO, f"cargo-nextest-{version}"))
+        self.assertEqual(self.run.call_count, 719)
+
+    def test_graphql_errors_with_partial_data_are_not_absence(self):
+        self.run.side_effect = [
+            json_result([]), http_result(404, {"message": "Not Found"}),
+            json_result({"errors": [{"message": "Resource access denied"}],
+                         "data": {"repository": {"release": None}}}),
+            http_result(404, {"message": "Not Found"}),
+            graphql_result({"tagName": "old", "isDraft": True}),
+        ]
+        with self.assertRaisesRegex(RuntimeError, "Resource access denied"):
+            sync_tool.release_exists(self.REPO, "old")
+        self.assertNotIn("old", sync_tool._MIRROR_MISSING_TAGS_CACHE[self.REPO])
+        self.assertTrue(sync_tool.release_exists(self.REPO, "old"))
+        self.assertEqual(self.run.call_count, 5)
+
+    def test_invalid_graphql_data_is_not_absence(self):
+        invalid = [
+            None, [], {}, {"data": None}, {"data": {"repository": None}},
+            {"data": {"repository": {}}}, {"data": {"repository": []}},
+            {"data": {"repository": {"release": {}}}},
+            {"data": {"repository": {"release": {"tagName": "wrong", "isDraft": True}}}},
+            {"data": {"repository": {"release": {"tagName": "old", "isDraft": "true"}}}},
+            {"errors": [{"message": "Query failed"}]},
+        ]
+        for data in invalid:
+            with self.subTest(data=data):
+                sync_tool._MIRROR_TAGS_CACHE[self.REPO] = set()
+                self.run.side_effect = [http_result(404, {"message": "Not Found"}), json_result(data)]
+                with self.assertRaises(RuntimeError):
+                    sync_tool.release_exists(self.REPO, "old")
+                self.assertNotIn("old", sync_tool._MIRROR_TAGS_CACHE[self.REPO])
+                self.assertNotIn("old", sync_tool._MIRROR_MISSING_TAGS_CACHE[self.REPO])
+
+    def test_malformed_graphql_json_is_not_absence(self):
+        self.run.side_effect = [
+            json_result([]), http_result(404, {"message": "Not Found"}),
+            subprocess.CompletedProcess([], 0, "not JSON", ""),
+        ]
+        with self.assertRaises(json.JSONDecodeError):
+            sync_tool.release_exists(self.REPO, "old")
+        self.assertNotIn("old", sync_tool._MIRROR_MISSING_TAGS_CACHE[self.REPO])
+
+    def test_graphql_cli_error_details_are_preserved(self):
+        self.run.side_effect = [
+            json_result([]), http_result(404, {"message": "Not Found"}),
+            subprocess.CompletedProcess([], 1, "", "GraphQL: Resource not accessible by integration"),
+        ]
+        with self.assertRaisesRegex(sync_tool.GhCommandError, "Resource not accessible by integration"):
+            sync_tool.release_exists(self.REPO, "old")
+        self.assertNotIn("old", sync_tool._MIRROR_MISSING_TAGS_CACHE[self.REPO])
+
+    def test_draft_lookup_cache_is_repository_specific(self):
+        other = "another/mirror"
+        self.run.side_effect = [
+            json_result([]), http_result(404, {"message": "Not Found"}),
+            graphql_result({"tagName": "shared", "isDraft": True}),
+            json_result([]), http_result(404, {"message": "Not Found"}), graphql_result(),
+        ]
+        self.assertTrue(sync_tool.release_exists(self.REPO, "shared"))
+        self.assertFalse(sync_tool.release_exists(other, "shared"))
+        self.assertTrue(sync_tool.release_exists(self.REPO, "shared"))
+        self.assertFalse(sync_tool.release_exists(other, "shared"))
+        self.assertEqual(self.run.call_count, 6)
 
     def test_cached_recent_tag_needs_no_exact_lookup(self):
         self.run.return_value = json_result([{"tag_name": "recent"}])
@@ -105,47 +216,48 @@ class ReleaseLookupTests(unittest.TestCase):
             json_result([{"tag_name": "shared"}]),
             json_result([]),
             http_result(404, {"message": "Not Found"}),
+            graphql_result(),
         ]
         self.assertTrue(sync_tool.release_exists(self.REPO, "shared"))
         self.assertFalse(sync_tool.release_exists(other, "shared"))
         self.assertTrue(sync_tool.release_exists(self.REPO, "shared"))
-        self.assertEqual(self.run.call_count, 3)
+        self.assertEqual(self.run.call_count, 4)
 
     def test_mark_created_clears_only_target_repository_miss(self):
         other = "another/mirror"
         self.run.side_effect = [
-            json_result([]), http_result(404, {"message": "Not Found"}),
-            json_result([]), http_result(404, {"message": "Not Found"}),
+            json_result([]), http_result(404, {"message": "Not Found"}), graphql_result(),
+            json_result([]), http_result(404, {"message": "Not Found"}), graphql_result(),
         ]
         self.assertFalse(sync_tool.release_exists(self.REPO, "new"))
         self.assertFalse(sync_tool.release_exists(other, "new"))
         sync_tool.mark_release_created("new", other)
         self.assertTrue(sync_tool.release_exists(other, "new"))
         self.assertFalse(sync_tool.release_exists(self.REPO, "new"))
-        self.assertEqual(self.run.call_count, 4)
+        self.assertEqual(self.run.call_count, 6)
 
     def test_mark_created_preserves_single_argument_call(self):
-        self.run.side_effect = [json_result([]), http_result(404, {"message": "Not Found"})]
+        self.run.side_effect = [json_result([]), http_result(404, {"message": "Not Found"}), graphql_result()]
         self.assertFalse(sync_tool.release_exists(self.REPO, "new"))
         sync_tool.mark_release_created("new")
         self.assertTrue(sync_tool.release_exists(self.REPO, "new"))
-        self.assertEqual(self.run.call_count, 2)
+        self.assertEqual(self.run.call_count, 3)
 
     def test_create_helper_marks_the_actual_repository(self):
         other = "another/mirror"
         self.run.side_effect = [
-            json_result([]), http_result(404, {"message": "Not Found"}),
+            json_result([]), http_result(404, {"message": "Not Found"}), graphql_result(),
             subprocess.CompletedProcess([], 0, "", ""),
         ]
         self.assertFalse(sync_tool.release_exists(other, "new"))
         self.assertEqual(sync_tool._create_mirror_release("tool", "1", "new", other, [], "", False), "ok")
         self.assertTrue(sync_tool.release_exists(other, "new"))
         self.assertNotIn(self.REPO, sync_tool._MIRROR_TAGS_CACHE)
-        self.assertEqual(self.run.call_count, 3)
+        self.assertEqual(self.run.call_count, 4)
 
     def test_failed_or_dry_creation_does_not_mark_present(self):
         self.run.side_effect = [
-            json_result([]), http_result(404, {"message": "Not Found"}),
+            json_result([]), http_result(404, {"message": "Not Found"}), graphql_result(),
             subprocess.CompletedProcess([], 1, "", "creation failed"),
         ]
         self.assertFalse(sync_tool.release_exists(self.REPO, "new"))
@@ -154,7 +266,7 @@ class ReleaseLookupTests(unittest.TestCase):
         self.assertFalse(sync_tool.release_exists(self.REPO, "new"))
         self.assertEqual(sync_tool._create_mirror_release(*args, False), "fail")
         self.assertFalse(sync_tool.release_exists(self.REPO, "new"))
-        self.assertEqual(self.run.call_count, 3)
+        self.assertEqual(self.run.call_count, 4)
 
     def test_exact_api_errors_propagate_and_are_not_cached(self):
         for status in (401, 403, 422, 429, 500, 502, 503, 504):
