@@ -1,0 +1,30 @@
+name: Test mirror scripts
+
+on:
+  pull_request:
+    paths:
+      - "scripts/**"
+      - "tests/**"
+      - ".github/workflows/tests.yml"
+  push:
+    branches: [main]
+    paths:
+      - "scripts/**"
+      - "tests/**"
+      - ".github/workflows/tests.yml"
+
+permissions:
+  contents: read
+
+jobs:
+  test:
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    steps:
+      - uses: actions/checkout@v4.2.2
+        with:
+          persist-credentials: false
+      - name: Run offline release lookup tests
+        run: python3 -m unittest discover -s tests -v
+      - name: Check Python syntax
+        run: python3 -m py_compile scripts/sync-tool.py tests/test_sync_tool.py
